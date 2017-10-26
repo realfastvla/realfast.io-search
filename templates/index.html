@@ -50,10 +50,16 @@
             },
             function(resp) {
                 // remove the tag from the DOM
-                console.log(id)
-                console.log(resp)
                 var tags = $(context).parent().parent()
-                tags.children().last().remove()
+                tags = tags.children()
+                for (var i = 0; i < tags.length; i++) {
+                    t = $(tags[i])
+                    console.log(t)
+                    if (t.find("p").html() == tag) {
+                        t.remove()
+                        break
+                    }
+                }
             }
         )        
     }
