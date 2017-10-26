@@ -119,6 +119,12 @@
 
   </script>
 
+  <script>
+    $(function() {
+        $("#tabs").tabs()
+    });
+  </script>
+
   <style type="text/css">
     .facet-view-simple{
       width:1170px;
@@ -155,7 +161,22 @@
 </head>
 
 <body>
-    <div class="facet-view-simple"></div>
+    <div id="tabs">
+        <ul>
+          <li><a href="#tabs-1">Test 1</a></li>
+          <li><a href="#tabs-2">Test 2</a></li>
+          <li><a href="#tabs-3">Test 3</a></li>
+        </ul>
+        <div id="tabs-1">
+            <p>Testing tab 1!</p>
+        </div>
+        <div id="tabs-2">
+	  <div class="facet-view-simple"></div>
+        </div>
+        <div id="tabs-3">
+            <p>Testing tab 3!</p>
+        </div>
+    </div>
     <div>Icons made by <a href="https://www.flaticon.com/authors/gregor-cresnar" title="Gregor Cresnar">Gregor Cresnar</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
 </body>
 
