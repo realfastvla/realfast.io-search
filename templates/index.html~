@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>FacetView</title>
+
+  <script type="text/javascript" src="{{url_for('static', filename='vendor/jquery/1.7.1/jquery-1.7.1.min.js')}}"></script>
+
+  <link rel="stylesheet" href="{{url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css')}}">
+  <script type="text/javascript" src="{{url_for('static', filename='vendor/bootstrap/js/bootstrap.min.js')}}"></script>  
+
+  <link rel="stylesheet" href="{{url_for('static', filename='vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.css')}}">
+  <script type="text/javascript" src="{{url_for('static', filename='vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.min.js')}}"></script>
+
+  <!-- note that we require the es.js integration, the bootstrap2 facetview and the facetview core -->
+  <script type="text/javascript" src="{{url_for('static', filename='es.js')}}"></script>
+  <script type="text/javascript" src="{{url_for('static', filename='bootstrap2.facetview.theme.js')}}"></script>
+  <script type="text/javascript" src="{{url_for('static', filename='jquery.facetview2.js')}}"></script>
+
+  <link rel="stylesheet" href="{{url_for('static', filename='css/facetview.css')}}">
+
+  <script type="text/javascript">
+    function processAddTagButtonClick(context) {
+        // set up adding a tag
+        var tag = $(context).parent().find("input").val()
+        var src = $(context).parent().parent().children("img").attr("src")
+        var parsedURL = src.slice(0, src.length-4).split("/")
+        var idTemp = parsedURL[parsedURL.length - 1]
+        var id = idTemp.slice(6)
+
+        addTag(context, id, tag)
+    }
+
+    function processRemoveTagButtonClick(context) {
+        // set up removing a tag
+        var tag = $(context).parent().find("p").html()
+        var src = $(context).parent().parent().parent().children("img").attr("src")
+        var parsedURL = src.slice(0, src.length-4).split("/")
+        var idTemp = parsedURL[parsedURL.length - 1]
+        var id = idTemp.slice(6)
+
+        removeTag(context, id, tag)
+    }
+
+    function removeTag(context, id, tag) {
+        $.ajax({
+            url: "http://search.realfast.io/api/remove_tag/" + id,
+            method: "post",
+            data: {
+                "tag": tag
+            },
+            contentType: "application/json",
+            dataType: "application/json",
+            method: "POST",
+            success: function(resp) {
+                // remove the tag from the DOM
+                console.log(id)
+                console.log(resp)
+                var tags = $(context).parent().parent()
+                tags.children().last().remove()
+            }
+        })        
+    }
+
+    function addTag(context, id, tag) {
+        $.post("http://search.realfast.io/api/add_tag/" + id,
+            {
+                "tag": tag
+            },
+            function(resp) {
+                console.log(id)
+                console.log(resp)
+                // add the tag to the DOM
+                var tags = $(context).parent().parent().find(".tag-visual-list")
+                tags.append("<span class=\"tag-visual\"><p>" + tag + "</p><img onclick=\"processRemoveTagButtonClick(this)\" src=\"{{url_for('static', filename='cancel.png')}}\"></span>")
+            }
+        )
+    }
+
+    function renderResult(options, record) {
+        htmlString = "<div><span style=\"float: right\"><input type=\"text\"><button onclick=\"processAddTagButtonClick(this)\">Add tag</button></span><ul><li>snr1: "
+        htmlString += record.snr1.toString()
+        htmlString += "</li><li>Tags: </li></ul><span class=\"tag-visual-list\">"
+        for (i = 0; i < record.tags.length; i++) {
+            htmlString += "<span class=\"tag-visual\"><p>" + record.tags[i] + "</p><img onclick=\"processRemoveTagButtonClick(this)\" src=\"{{url_for('static', filename='cancel.png')}}\"></span>"
+        }
+        htmlString += "</span><img src=\"http://www.aoc.nrao.edu/~claw/plots/" + record.candidate_png + "\"></div>"
+        return htmlString
+    }
+
+    jQuery(document).ready(function($) {
+        $('.facet-view-simple').each(function() {
+            $(this).facetview({
+                search_url : "http://search.realfast.io/api/realfast/cand/_search",
+                datatype : "json",
+                default_freetext_fuzzify: "*",
+                sort: [{"snr1" : {"order" : "desc"}}],
+                facets: [ ],
+                default_facet_size: 12,
+                include_facets_in_url:false,
+                include_facets:true,
+                from: 0,
+                search_sortby: [
+                    {'display':'snr1',         'field':'snr1'},
+                    {'display':'obs',         'field':'obs'},
+                ],
+//              searchbox_fieldselect: [
+//                  {'display':'snr1',         'field':'snr1'},
+//                  {'display':'obs',         'field':'obs'},
+//              ],
+                search_button: false,
+                sharesave_link: true,
+                debug: false,
+                stored_fields: ["obs", "snr1", "scan", "candidate_png", "dmind", "dtind", "int", "segment"],
+                render_results_metadata: pageSlider,
+                render_result_record: renderResult,
+             // selected_filters_in_facet: true,
+                show_filter_field : true,
+                show_filter_logic: true,
+                "pushstate" : false,
+                exclude_predefined_filters_from_facets : false
+            });
+         });
+      });
+
+  </script>
+
+  <style type="text/css">
+    .facet-view-simple{
+      width:1170px;
+      height:600px;
+      margin:20px auto 0 auto;
+    }
+
+    .tag-visual {
+      display: inline-block;
+      width: 50px;
+      border: 1px solid black;
+      border-radius: 5px;
+      padding-left: 2px;
+      margin-left: 5px;
+      position: relative;
+    }
+
+    .tag-visual img {
+      display: none;
+      position: absolute;
+      bottom: 15px;
+      left: 40px;
+      background-color: white;
+    }
+
+    .tag-visual:hover img {
+      display: inline;
+    }
+
+    .tag-visual img:hover {
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+    <div class="facet-view-simple"></div>
+    <div>Icons made by <a href="https://www.flaticon.com/authors/gregor-cresnar" title="Gregor Cresnar">Gregor Cresnar</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+</body>
+
+</html>

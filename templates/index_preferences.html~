@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>FacetView</title>
+
+  <script type="text/javascript" src="{{url_for('static', filename='vendor/jquery/1.7.1/jquery-1.7.1.min.js')}}"></script>
+
+  <link rel="stylesheet" href="{{url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css')}}">
+  <script type="text/javascript" src="{{url_for('static', filename='vendor/bootstrap/js/bootstrap.min.js')}}"></script>  
+
+  <link rel="stylesheet" href="{{url_for('static', filename='vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.css')}}">
+  <script type="text/javascript" src="{{url_for('static', filename='vendor/jquery-ui-1.8.18.custom/jquery-ui-1.8.18.custom.min.js')}}"></script>
+
+  <!-- note that we require the es.js integration, the bootstrap2 facetview and the facetview core -->
+  <script type="text/javascript" src="{{url_for('static', filename='es.js')}}"></script>
+  <script type="text/javascript" src="{{url_for('static', filename='bootstrap2.facetview.theme.js')}}"></script>
+  <script type="text/javascript" src="{{url_for('static', filename='jquery.facetview2.js')}}"></script>
+
+  <link rel="stylesheet" href="{{url_for('static', filename='css/facetview.css')}}">
+
+  <script type="text/javascript">
+jQuery(document).ready(function($) {
+    $('.facet-view-simple').each(function() {
+        $(this).facetview({
+            search_url : "http://search.realfast.io/api/scans/scan/_search",
+            datatype : "json",
+            default_freetext_fuzzify: "*",
+            sort: [{"startTime" : {"order" : "desc"}}],
+            facets: [ ],
+            default_facet_size: 12,
+            include_facets_in_url:false,
+            include_facets:true,
+            from: 0,
+            search_sortby: [
+                {'display':'datasetId',         'field':'datasetId'},
+                {'display':'scan_intent',         'field':'scan_intent'},
+            ],
+//            searchbox_fieldselect: [
+//                {'display':'snr1',         'field':'snr1'},
+//                {'display':'obs',         'field':'obs'},
+//            ],
+            search_button: false,
+            sharesave_link: true,
+            debug: false,
+            stored_fields: ["datasetId", "scan_intent", "startTime", "stopTime", "ra_deg", "dec_deg", "scanId", "projid"],
+            render_results_metadata: pageSlider,
+            "result_display" : 
+              [
+                [ 
+                  { "pre": "<ul><li>Id: ", "field": "scanId", "post": "</li> "},
+                  { "pre": "<li>(RA, Dec, startTime, stopTime, scan_intent): ", "field": "ra_deg", "post": "," },
+                  { "pre": " ", "field": "dec_deg", "post": "," },
+                  { "pre": " ", "field": "startTime", "post": "," },
+                  { "pre": " ", "field": "stopTime", "post": "," },
+                  { "pre": " ", "field": "scan_intent", "post": "</li></ul>" },
+                ],
+              ],
+            // selected_filters_in_facet: true,
+            show_filter_field : true,
+            show_filter_logic: true,
+            "pushstate" : false,
+            exclude_predefined_filters_from_facets : false
+        });
+    });
+});
+  </script>
+
+<style type="text/css">
+.facet-view-simple{
+    width:1170px;
+    height:600px;
+    margin:20px auto 0 auto;
+}
+</style>
+
+</head>
+<body>
+
+    <div class="facet-view-simple"></div>
+
+</body>
+</html>
