@@ -89,7 +89,7 @@
     }
 
     jQuery(document).ready(function($) {
-        $('.facet-view-simple').each(function() {
+        $('.facet-view-cands').each(function() {
             $(this).facetview({
                 search_url : "http://search.realfast.io/api/realfast/cand/_search",
                 datatype : "json",
@@ -120,8 +120,60 @@
                 "pushstate" : false,
                 exclude_predefined_filters_from_facets : false
             });
-         });
-      });
+        });
+        $('.facet-view-scans').each(function() {
+            $(this).facetview({
+                search_url : "http://search.realfast.io/api/scans/scan/_search",
+                datatype : "json",
+                default_freetext_fuzzify: "*",
+                sort: [{"startTime" : {"order" : "desc"}}],
+                facets: [ ],
+                default_facet_size: 12,
+                include_facets_in_url:false,
+                include_facets:true,
+                from: 0,
+                search_sortby: [
+                    {'display':'startTime',         'field':'startTime'},
+                    {'display':'ra_deg',         'field':'ra_deg'},
+                    {'display':'dec_deg',         'field':'dec_deg'},
+                ],
+                searchbox_fieldselect: [
+                    {'display':'scanId',         'field':'scanId'},
+                    {'display':'prefsname',         'field':'prefsname'},
+                ],
+                search_button: false,
+                sharesave_link: true,
+                debug: false,
+                stored_fields: ["scanId", "datasetId", "scan_intent", "datasource", "startTime", "stopTime", "ra_deg", "dec_deg", "scanNo", "subscanNo", "prefsname", "source"],
+                render_results_metadata: pageSlider,
+                "result_display" : 
+                [
+                  [ 
+                    { "pre": "<ul><li>scanId: ", "field": "scanId", "post": ","},
+                    { "pre": " scan ", "field": "scanNo", "post": "," },
+                    { "pre": " subscan ", "field": "subscanNo", "post": "</li>"},
+                    { "pre": "<li>(startTime, stopTime): ", "field": "startTime", "post": "," },
+                    { "pre": " ", "field": "stopTime", "post": "</li>"},
+                    { "pre": "<li>(RA, Dec, source): ", "field": "ra_deg", "post": "," },
+                    { "pre": " ", "field": "dec_deg", "post": "," },
+                    { "pre": " ", "field": "source", "post": "</li>"},
+                    { "pre": "<li>(intent, datasource): ", "field": "scan_intent", "post": "," },
+                    { "pre": " ", "field": "datasource", "post": "</li>"},
+                    { "pre": "<li>candidates: <a href='http://search.realfast.io/api/cands/cand/_search?q=datasetId:", "field": "datasetId", "post": "&pretty'>"}, 
+                    { "pre": " ", "field": "datasetId",  "post": "</a></li>"},
+                    { "pre": "<li>mocks: ", "field": "datasetId",  "post": "</li>"},
+                    { "pre": "<li>preferences: <a href='http://search.realfast.io/api/preferences/preference/", "field": "prefsname", "post": "?pretty'>"},
+                    { "pre": " ", "field": "prefsname", "post": "</a></li></ul>" }
+                 ],
+              ],
+              // selected_filters_in_facet: true,
+              show_filter_field : true,
+              show_filter_logic: true,
+              "pushstate" : false,
+              exclude_predefined_filters_from_facets : false
+            });
+        });
+    });
 
   </script>
 
@@ -132,10 +184,18 @@
   </script>
 
   <style type="text/css">
-    .facet-view-simple{
+    .facet-view-cands{
       width:1170px;
       height:600px;
       margin:20px auto 0 auto;
+      overflow: scroll;
+    }
+
+    .facet-view-scans{
+        width:1170px;
+        height:600px;
+        margin:20px auto 0 auto;
+        overflow: scroll;
     }
 
     .tag-visual {
@@ -167,21 +227,30 @@
 </head>
 
 <body>
+    {% if not session.logged_in %}
+      <a href="{{ url_for('login') }}">Log in</a>
+    {% else %}
+      <a href="{{ url_for('logout') }}">Log out</a>
+    {% endif %}
     <div id="tabs">
         <ul>
-          <li><a href="#tabs-1">Test 1</a></li>
-          <li><a href="#tabs-2">Test 2</a></li>
-          <li><a href="#tabs-3">Test 3</a></li>
+          <li><a href="#tabs-1">Cands</a></li>
+          {% if session.logged_in %}
+            <li><a href="#tabs-2">Scans</a></li>
+            <li><a href="#tabs-3">Preferences</a></li>
+          {% endif %}
         </ul>
         <div id="tabs-1">
-            <p>Testing tab 1!</p>
+          <div class="facet-view-cands"></div>
         </div>
-        <div id="tabs-2">
-	  <div class="facet-view-simple"></div>
-        </div>
-        <div id="tabs-3">
-            <p>Testing tab 3!</p>
-        </div>
+        {% if session.logged_in %}
+          <div id="tabs-2">
+	    <div class="facet-view-scans"></div>
+          </div>
+          <div id="tabs-3">
+            <div class="facet-view-preferences"></div>
+          </div>
+        {% endif %}
     </div>
     <div>Icons made by <a href="https://www.flaticon.com/authors/gregor-cresnar" title="Gregor Cresnar">Gregor Cresnar</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
 </body>

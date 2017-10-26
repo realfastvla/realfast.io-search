@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session, url_for, redirect
 import requests
 import json
 from elasticsearch import Elasticsearch
 
 app = Flask(__name__)
+app.secret_key = b'r8\x9f\xbda\xc8q]]\x9e\xbc\x82y\x08h\x95\x8b\xc9\xcb\xa8\xd8\x90\x93\x18'
 es = Elasticsearch("http://go-nrao-nm.aoc.nrao.edu:9200")
 
 def sanitize(s):
@@ -16,6 +17,16 @@ def sanitize(s):
 def index():
     #return the frontend
     return render_template("index.html")
+
+@app.route("/login")
+def login():
+    session["logged_in"] = True
+    return redirect(url_for("index"), code=302)
+
+@app.route("/logout")
+def logout():
+    del session["logged_in"]
+    return redirect(url_for("index"), code=302)
 
 @app.route("/scans")
 def obs_index():
