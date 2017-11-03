@@ -50,11 +50,11 @@ def get_api(query):
 @app.route("/api/add_tag/<id>", methods=["POST"])
 def add_candidate_tag(id):
     tag = sanitize(request.form["tag"])
-    resp = es.update("realfast", "cand", id, {"script": "if (!ctx._source.tags.contains('" + tag + "')) { ctx._source.tags.add('" + tag + "') }"})
+    resp = es.update("cands", "cand", id, {"script": "if (!ctx._source.tags.contains('" + tag + "')) { ctx._source.tags.add('" + tag + "') }"})
     return json.dumps(resp)
 
 @app.route("/api/remove_tag/<id>", methods=["POST"])
 def remove_candidate_tag(id):
     tag = request.form["tag"].replace(";", "")
-    resp = es.update("realfast", "cand", id, {"script": "if (ctx._source.tags.contains('" + tag + "')) { ctx._source.tags.remove(ctx._source.tags.indexOf('" + tag + "')) }"})
+    resp = es.update("cands", "cand", id, {"script": "if (ctx._source.tags.contains('" + tag + "')) { ctx._source.tags.remove(ctx._source.tags.indexOf('" + tag + "')) }"})
     return json.dumps(resp)
