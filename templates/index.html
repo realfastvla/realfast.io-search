@@ -84,7 +84,7 @@
         for (i = 0; i < record.tags.length; i++) {
             htmlString += "<span class=\"tag-visual\"><p>" + record.tags[i] + "</p><img onclick=\"processRemoveTagButtonClick(this)\" src=\"{{url_for('static', filename='cancel.png')}}\"></span>"
         }
-        htmlString += "</span><img src=\"http://www.aoc.nrao.edu/~claw/plots/" + record.candidate_png + "\"></div>"
+        htmlString += "</span><img src=\"" + record.png_url + "\"></div>"
         return htmlString
     }
 
@@ -111,7 +111,7 @@
                 search_button: false,
                 sharesave_link: true,
                 debug: false,
-                stored_fields: ["obs", "snr1", "scan", "candidate_png", "dmind", "dtind", "int", "segment"],
+                stored_fields: ["obs", "snr1", "scan", "png_url", "dmind", "dtind", "int", "segment"],
                 render_results_metadata: pageSlider,
                 render_result_record: renderResult,
              // selected_filters_in_facet: true,
