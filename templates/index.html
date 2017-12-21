@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>FacetView</title>
+  <title>Realfast Candidate Tagging System</title>
 
   <script type="text/javascript" src="{{url_for('static', filename='vendor/jquery/1.7.1/jquery-1.7.1.min.js')}}"></script>
 
@@ -20,71 +20,174 @@
   <link rel="stylesheet" href="{{url_for('static', filename='css/facetview.css')}}">
 
   <script type="text/javascript">
-    function processAddTagButtonClick(context) {
-        // set up adding a tag
-        var tag = $(context).parent().find("input").val()
-        $(context).parent().find("input").val("")
-        var src = $(context).parent().parent().children("img").attr("src")
-        var parsedURL = src.slice(0, src.length-4).split("/")
-        var idTemp = parsedURL[parsedURL.length - 1]
-        var id = idTemp.slice(6)
+    <!-- function processAddTagButtonClick(context) { -->
+    <!--     // set up adding a tag -->
+    <!--     var tag = $(context).parent().find("input").val() -->
+    <!--     $(context).parent().find("input").val("") -->
+    <!--     var src = $(context).parent().parent().children("img").attr("src") -->
+    <!--     var parsedURL = src.slice(0, src.length-4).split("/") -->
+    <!--     var idTemp = parsedURL[parsedURL.length - 1] -->
+    <!--     var id = idTemp.slice(6) -->
 
-        addTag(context, id, tag)
+    <!--     addTag(context, id, tag) -->
+    <!-- } -->
+
+    <!-- function processRemoveTagButtonClick(context) { -->
+    <!--     // set up removing a tag -->
+    <!--     var tag = $(context).parent().find("p").html() -->
+    <!--     var src = $(context).parent().parent().parent().children("img").attr("src") -->
+    <!--     var parsedURL = src.slice(0, src.length-4).split("/") -->
+    <!--     var idTemp = parsedURL[parsedURL.length - 1] -->
+    <!--     var id = idTemp.slice(6) -->
+
+    <!--     removeTag(context, id, tag) -->
+    <!-- } -->
+
+    <!-- function removeTag(context, id, tag) { -->
+    <!--     $.post("http://search.realfast.io/api/remove_tag/" + id, -->
+    <!--         { -->
+    <!--             "tag": tag -->
+    <!--         }, -->
+    <!--         function(resp) { -->
+    <!--             // remove the tag from the DOM -->
+    <!--             var tags = $(context).parent().parent() -->
+    <!--             tags = tags.children() -->
+    <!--             for (var i = 0; i < tags.length; i++) { -->
+    <!--                 t = $(tags[i]) -->
+    <!--                 console.log(t) -->
+    <!--                 if (t.find("p").html() == tag) { -->
+    <!--                     t.remove() -->
+    <!--                     break -->
+    <!--                 } -->
+    <!--             } -->
+    <!--         } -->
+    <!--     )         -->
+    <!-- } -->
+
+    <!-- function addTag(context, id, tag) { -->
+    <!--     $.post("http://search.realfast.io/api/add_tag/" + id, -->
+    <!--         { -->
+    <!--             "tag": tag -->
+    <!--         }, -->
+    <!--         function(resp) { -->
+    <!--             // add the tag to the DOM -->
+    <!--             var tags = $(context).parent().parent().find(".tag-visual-list") -->
+    <!--             tags.append("<span class=\"tag-visual\"><p>" + tag + "</p><img onclick=\"processRemoveTagButtonClick(this)\" src=\"{{url_for('static', filename='cancel.png')}}\"></span>") -->
+    <!--         } -->
+    <!--     ) -->
+    <!-- } -->
+
+    function change_tag(id, context) {
+        var tag = $(context).attr("name");
+	if ($(context).is(":checked")) {
+            $.get("/api/add_tag/" + id + "?tag=" + tag);
+        } else {
+            $.get("/api/remove_tag/" + id + "?tag=" + tag);
+        }
     }
 
-    function processRemoveTagButtonClick(context) {
-        // set up removing a tag
-        var tag = $(context).parent().find("p").html()
-        var src = $(context).parent().parent().parent().children("img").attr("src")
-        var parsedURL = src.slice(0, src.length-4).split("/")
-        var idTemp = parsedURL[parsedURL.length - 1]
-        var id = idTemp.slice(6)
-
-        removeTag(context, id, tag)
-    }
-
-    function removeTag(context, id, tag) {
-        $.post("http://search.realfast.io/api/remove_tag/" + id,
-            {
-                "tag": tag
-            },
-            function(resp) {
-                // remove the tag from the DOM
-                var tags = $(context).parent().parent()
-                tags = tags.children()
-                for (var i = 0; i < tags.length; i++) {
-                    t = $(tags[i])
-                    console.log(t)
-                    if (t.find("p").html() == tag) {
-                        t.remove()
-                        break
+    function click_scan(event, context, scan_id) {
+        // activate the scan popup
+        request_url = "/api/scan-info/" + scan_id.toString();
+	console.log(request_url);
+	$.get(request_url, function(resp) {
+                // resp contains the html to display
+                $("#scan-info").html(resp).dialog({
+                    width: 'auto',
+                    modal: true,
+                    beforeClose: function() {
+                        $(context).css("color", "black");
                     }
-                }
-            }
-        )        
+                });
+        });
+	$(context).css("color", "red");
     }
 
-    function addTag(context, id, tag) {
-        $.post("http://search.realfast.io/api/add_tag/" + id,
-            {
-                "tag": tag
-            },
-            function(resp) {
-                // add the tag to the DOM
-                var tags = $(context).parent().parent().find(".tag-visual-list")
-                tags.append("<span class=\"tag-visual\"><p>" + tag + "</p><img onclick=\"processRemoveTagButtonClick(this)\" src=\"{{url_for('static', filename='cancel.png')}}\"></span>")
-            }
-        )
+    function click_cands(event, context, scan_id) {
+        // activate the scan popup
+//        request_url = "http://www.aoc.nrao.edu/~claw/realfast/plots/cands_" + scan_id.toString() + ".html";
+        request_url = "/api/get-cands-plot/" + scan_id.toString();
+	console.log(request_url);
+	$.get(request_url, function(resp) {
+                // resp contains the html to display
+                $("#cands-info").html(resp).dialog({
+                    width: 'auto',
+                    modal: true,
+                    beforeClose: function() {
+                        $(context).css("color", "black");
+                    }
+                });
+        });
+	$(context).css("color", "red");
+    }
+
+    function click_preference(event, context, prefsname) {
+        // activate the preference popup
+        request_url = "/api/preference-info/" + prefsname.toString();
+	console.log(request_url);
+	$.get(request_url, function(resp) {
+                // resp contains the html to display
+                $("#preference-info").html(resp).dialog({
+                    width: 'auto',
+                    modal: true,
+                    beforeClose: function() {
+                        $(context).css("color", "black");
+                    }
+                });
+        });
+	$(context).css("color", "red");
+    }
+
+    function click_mock(event, context, scanId) {
+        // activate the mock popup
+        request_url = "/api/mock-info/" + scanId.toString();
+	console.log(request_url);
+	$.get(request_url, function(resp) {
+                // resp contains the html to display
+                $("#mock-info").html(resp).dialog({
+                    width: 'auto',
+                    modal: true,
+                    beforeClose: function() {
+                        $(context).css("color", "black");
+                    }
+                });
+        });
+	$(context).css("color", "red");
     }
 
     function renderResult(options, record) {
-        htmlString = "<div><span style=\"float: right\"><input type=\"text\"><button onclick=\"processAddTagButtonClick(this)\">Add tag</button></span><ul><li>snr1: "
+	var id = record.scanId.toString() + "_seg" + record.segment.toString() + "-i" + record.integration.toString() + "-dm" + record.dmind.toString() + "-dt" + record.dtind.toString();
+        htmlString = "<div>candId: "
+        htmlString += record.scanId.toString() + "_seg" + record.segment.toString() + "-i" + record.integration.toString() + "-dm" + record.dmind.toString() + "-dt" + record.dtind.toString()
+        htmlString += "<ul><li>(candmjd, canddm, canddt): "
+        htmlString += record.candmjd.toString() + ", " + record.canddm.toString() + ", " + record.canddt.toString() + "</li>"
+        htmlString += "<li>snr1: "
         htmlString += record.snr1.toString()
-        htmlString += "</li><li>Tags: </li></ul><span class=\"tag-visual-list\">"
-        for (i = 0; i < record.tags.length; i++) {
-            htmlString += "<span class=\"tag-visual\"><p>" + record.tags[i] + "</p><img onclick=\"processRemoveTagButtonClick(this)\" src=\"{{url_for('static', filename='cancel.png')}}\"></span>"
+        htmlString += "</li>"
+
+        {% if session.logged_in %}
+	htmlString += "<li>More info:</li>"
+        htmlString += "<ul><li class=\"clickable\" onclick=\"click_scan(event, this, '" + record.scanId + "')\">Show scan info</li>"
+	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22candmjd%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"
+	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%20AND%20segment%5C%5C%3A" + record.segment.toString() + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22candmjd%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in segment</a></li></ul>"
+        {% endif %}
+	htmlString += "</ul>"
+
+        {% if session.logged_in %}
+        var possible_tags = ["new", "rfi", "bad", "noise", "needs flagging", "needs review", "interesting", "pulsar", "frb", "mock", "public"];
+        console.log("here");
+        console.log(record.tags);
+        console.log(id);
+	var record_tags = record.tags.split(",")
+        for (var i = 0; i < possible_tags.length; i++) {
+            if (record_tags[i] == possible_tags[i]) {
+                htmlString += "<input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" name=\"" + possible_tags[i] + "\" checked> " + possible_tags[i] + " "
+            } else {
+                htmlString += "<input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" name=\"" + possible_tags[i] + "\"> " + possible_tags[i] + " "
+            }
         }
-        htmlString += "</span><img src=\"" + record.png_url + "\"></div>"
+        {% endif %}
+        htmlString += "<img src=\"" + record.png_url + "\"><hr></div>"
         return htmlString
     }
 
@@ -94,7 +197,7 @@
                 search_url : "http://search.realfast.io/api/cands/cand/_search",
                 datatype : "json",
                 default_freetext_fuzzify: "*",
-                sort: [{"snr1" : {"order" : "desc"}}],
+                sort: [{"candmjd" : {"order" : "desc"}}],
                 facets: [ ],
                 default_facet_size: 12,
                 include_facets_in_url:false,
@@ -102,16 +205,16 @@
                 from: 0,
                 search_sortby: [
                     {'display':'snr1',         'field':'snr1'},
-                    {'display':'obs',         'field':'obs'},
+                    {'display':'candmjd',      'field':'candmjd'},
                 ],
-//              searchbox_fieldselect: [
-//                  {'display':'snr1',         'field':'snr1'},
-//                  {'display':'obs',         'field':'obs'},
-//              ],
+//                searchbox_fieldselect: [
+//                    {'display':'snr1',         'field':'snr1'},
+//                    {'display':'obs',         'field':'obs'},
+//                ],
                 search_button: false,
                 sharesave_link: true,
                 debug: false,
-                stored_fields: ["obs", "snr1", "scan", "png_url", "dmind", "dtind", "int", "segment"],
+                stored_fields: ["scanId", "prefsname", "tags", "scan", "segment", "integration", "dmind", "dtind", "png_url", "candmjd", "canddm", "canddt", "snr1"],
                 render_results_metadata: pageSlider,
                 render_result_record: renderResult,
              // selected_filters_in_facet: true,
@@ -146,24 +249,23 @@
                 debug: false,
                 stored_fields: ["scanId", "datasetId", "scan_intent", "datasource", "startTime", "stopTime", "ra_deg", "dec_deg", "scanNo", "subscanNo", "prefsname", "source"],
                 render_results_metadata: pageSlider,
-                "result_display" : 
+                "result_display" :
                 [
-                  [ 
-                    { "pre": "<ul><li>scanId: ", "field": "scanId", "post": ","},
-                    { "pre": " scan ", "field": "scanNo", "post": "," },
-                    { "pre": " subscan ", "field": "subscanNo", "post": "</li>"},
+                  [
+                    { "pre": "scanId: ", "field": "scanId", "post": "</a>"},
+                    { "pre": "<ul><li>(source, intent, datasource): ", "field": "source", "post": "," },
+                    { "pre": " ", "field": "scan_intent", "post": ","},
+                    { "pre": " ", "field": "datasource", "post": "</li>"},
+                    { "pre": "<li>(scan, subscan): ", "field": "scanNo", "post": "," },
+                    { "pre": " ", "field": "subscanNo", "post": "</li>"},
                     { "pre": "<li>(startTime, stopTime): ", "field": "startTime", "post": "," },
                     { "pre": " ", "field": "stopTime", "post": "</li>"},
-                    { "pre": "<li>(RA, Dec, source): ", "field": "ra_deg", "post": "," },
-                    { "pre": " ", "field": "dec_deg", "post": "," },
-                    { "pre": " ", "field": "source", "post": "</li>"},
-                    { "pre": "<li>(intent, datasource): ", "field": "scan_intent", "post": "," },
-                    { "pre": " ", "field": "datasource", "post": "</li>"},
-                    { "pre": "<li>candidates: <a href='http://search.realfast.io/api/cands/cand/_search?q=datasetId:", "field": "datasetId", "post": "&pretty'>"}, 
-                    { "pre": " ", "field": "datasetId",  "post": "</a></li>"},
-                    { "pre": "<li>mocks: ", "field": "datasetId",  "post": "</li>"},
-                    { "pre": "<li>preferences: <a href='http://search.realfast.io/api/preferences/preference/", "field": "prefsname", "post": "?pretty'>"},
-                    { "pre": " ", "field": "prefsname", "post": "</a></li></ul>" }
+                    { "pre": "<li>(RA, Dec): ", "field": "ra_deg", "post": "," },
+                    { "pre": " ", "field": "dec_deg", "post": "</li>" },
+		    { "pre": "<li>More info: <ul><li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22", "field": "scanId", "post": "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22candmjd%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"},
+                    { "pre": "<li class=\"clickable\" onclick=\"click_cands(event, this, '", "field": "scanId", "post": "')\">Show scan summary</li>"},
+                    { "pre": "<li class=\"clickable\" onclick=\"click_preference(event, this, '", "field": "prefsname", "post": "')\">Show preferences</li>"},
+                    { "pre": "<li class=\"clickable\" onclick=\"click_mock(event, this, '", "field": "scanId", "post": "')\">Show mock transients</li></ul></ul>"},
                  ],
               ],
               // selected_filters_in_facet: true,
@@ -179,21 +281,67 @@
 
   <script>
     $(function() {
-        $("#tabs").tabs()
+        $("#tabs").tabs();
+        $("#tabs").tabs("select", {{curr_tab}});
     });
+
+    function mass_tag(stage, context) {
+        if (stage == 0) {
+            $("#mass-tag-dialog").dialog({
+                modal: true,
+                width: "auto"
+            });
+        } else if (stage == 1) {
+            var tmp = $("#mass-tag-dialog").html();
+            var inputs = $(context).parent().children("input");
+            var new_tags = "";
+            for (var i = 0; i < inputs.length; i++) {
+                if ($(inputs[i]).is(":checked")) {
+                    new_tags += $(inputs[i]).attr("name");
+                } else {
+                    new_tags += "_";
+                }
+                if (i != inputs.length - 1) {
+                    new_tags += ",";
+                }
+            }
+	    $.get("/api/mass-tag", {"tags": new_tags}, function(resp) {
+		response_info = JSON.parse(resp);
+		if (response_info.type == "failure") {
+		    $("#mass-tag-dialog").html("There was an error, not all tags may have been updated").dialog({
+		        beforeClose: function() {
+		            $("#mass-tag-dialog").html(tmp);
+		        }
+		    });
+		} else {
+		    $("#mass-tag-dialog").html("Success! " + response_info.updated.toString() + " candidates updated.").dialog({
+		        beforeClose: function() {
+		            $("#mass-tag-dialog").html(tmp);
+			    $("[name=q]").keyup();
+		        }
+		    });
+		}
+	    })
+            $("#mass-tag-dialog").html("Working...").dialog({
+                beforeClose: function() {
+                    $("#mass-tag-dialog").html(tmp);
+                }
+            });
+        }
+    }
   </script>
 
   <style type="text/css">
     .facet-view-cands{
       width:1170px;
-      height:600px;
+      height:100%;
       margin:20px auto 0 auto;
       overflow: scroll;
     }
 
     .facet-view-scans{
         width:1170px;
-        height:600px;
+        height:100%;
         margin:20px auto 0 auto;
         overflow: scroll;
     }
@@ -223,36 +371,72 @@
     .tag-visual img:hover {
       cursor: pointer;
     }
+
+    .clickable:hover {
+      cursor: pointer;
+    }
+
+    #mass-tag-dialog {
+        display: none;
+    }
   </style>
 </head>
 
 <body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          {% if category == "success" %}
+              <div class="alert alert-success"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>{{ message }}</div>
+          {% elif category == "error" %}
+              <div class="alert alert-error"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>{{ message }}</div>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
     {% if not session.logged_in %}
-      <a href="{{ url_for('login') }}">Log in</a>
+      <a href="{{ url_for('login') }}" class="btn">Log in</a>
     {% else %}
-      <a href="{{ url_for('logout') }}">Log out</a>
+      <a href="{{ url_for('logout') }}" class="btn">Log out</a>
     {% endif %}
     <div id="tabs">
         <ul>
           <li><a href="#tabs-1">Cands</a></li>
           {% if session.logged_in %}
             <li><a href="#tabs-2">Scans</a></li>
-            <li><a href="#tabs-3">Preferences</a></li>
           {% endif %}
         </ul>
         <div id="tabs-1">
-          <div class="facet-view-cands"></div>
+	  {% if session.logged_in %}
+	    <button onclick="mass_tag(0, this)">Mass tag</button>
+	  {% endif %}
+	  <div class="facet-view-cands"></div>
         </div>
         {% if session.logged_in %}
           <div id="tabs-2">
 	    <div class="facet-view-scans"></div>
           </div>
-          <div id="tabs-3">
-            <div class="facet-view-preferences"></div>
-          </div>
         {% endif %}
     </div>
-    <div>Icons made by <a href="https://www.flaticon.com/authors/gregor-cresnar" title="Gregor Cresnar">Gregor Cresnar</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+    <div id="scan-info" title="Scan info"></div>
+    <div id="cands-info" title="Cands info"></div>
+    <div id="preference-info" title="Preference info"></div>
+    <div id="mock-info" title="Mock info"></div>
+    <div id="mass-tag-dialog" title="Mass tag">
+        <h3>Apply what tags to last search result?</h3>
+        <input type="checkbox" id="mass-tag-new" name="new"> new <br>
+	<input type="checkbox" id="mass-tag-rfi" name="rfi"> rfi <br>
+	<input type="checkbox" id="mass-tag-bad" name="bad"> bad <br>
+	<input type="checkbox" id="mass-tag-noise" name="noise"> noise <br>
+	<input type="checkbox" id="mass-tag-needs-flagging" name="needs flagging"> needs flagging <br>
+	<input type="checkbox" id="mass-tag-needs-review" name="needs review"> needs review <br>
+	<input type="checkbox" id="mass-tag-interesting" name="interesting"> interesting <br>
+	<input type="checkbox" id="mass-tag-pulsar" name="pulsar"> pulsar <br>
+	<input type="checkbox" id="mass-tag-frb" name="frb"> frb <br>
+	<input type="checkbox" id="mass-tag-mock" name="mock"> mock <br>
+	<input type="checkbox" id="mass-tag-public" name="public"> public <br>
+        <button onclick="mass_tag(1, this)">Next</button>
+    </div>
 </body>
 
 </html>
