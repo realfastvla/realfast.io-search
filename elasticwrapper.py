@@ -136,7 +136,7 @@ def get_scan_info(id):
     record = es.get(index="scans", doc_type="scan", id=id)
     doc = record["_source"]
     scanId = doc["scanId"]
-    scanIdLink = "http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22idgoeshere%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22candmjd%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D".replace("idgoeshere", scanId)
+    scanIdLink = "http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22idgoeshere%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D".replace("idgoeshere", scanId)
     scanNo = doc["scanNo"]
     subscanNo = doc["subscanNo"]
     startTime = doc["startTime"]
@@ -205,8 +205,8 @@ def get_cands_plot(id):
     else:
         return "No file found for id {0}".format(id)
 
-@app.route("/api/mass-tag")
-def mass_tag():
+@app.route("/api/group-tag")
+def group_tag():
     last_request = session.get("last_request")
     new_tags = request.args.get("tags")
     q = {
@@ -220,4 +220,13 @@ def mass_tag():
     response_info = {"total": resp["total"], "updated": resp["updated"], "type": "success"}
     if resp["failures"] != []:
         response_info["type"] = "failure"
+    return json.dumps(response_info)
+
+# not working?
+@app.route("/api/group-tag-count")
+def group_tag_count():
+    last_request = session.get("last_request")
+    q = {"query": last_request}
+    resp = es.search(body=q, doc_type="cand", index="cands")
+    response_info = {"total": resp["total"]}
     return json.dumps(response_info)

@@ -370,7 +370,7 @@ function getUrlVars() {
             "search_button" : false,
             
             // amount of time between finishing typing and when a query is executed from the search box
-            "freetext_submit_delay" : 500,
+            "freetext_submit_delay" : 1000,
             
             ///// url configuration /////////////////////////////
             

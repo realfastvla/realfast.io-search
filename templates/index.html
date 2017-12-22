@@ -155,6 +155,30 @@
 	$(context).css("color", "red");
     }
 
+    function search_help(event, context) {
+        // activate the search help
+        url = "https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#_boolean_operators";
+        resp = "<ul><li>Search examples:</li>";
+        resp += "<ul><li>tags:new AND candmdm:>100</li>";
+	resp += "<li>snr1:>10 AND !canddt:>0.02</li></ul>";
+        resp += "<li>See also the <a href='" + url + "'>elasticsearch help</a>.</li>";
+	resp += "<li>If you see page stuck with 'SEARCHING' click the x to reset search.</li>";
+	resp += "<li>Click arrow to change sort order.</li>";
+        resp += "<li>Use pulldown to change sort field to snr1 or candmjd.</li></ul></p>";
+        resp += "<p>Group tagging uses cookies to apply single tag to all candidates in last query.</p>";
+        resp += "<p>Candidate index fields: tags, scanId, datasetId, prefsname, snr1, candmjd, canddm (pc/cm3), canddt (s), scan, segment, integration, dmind, dtind, and (sometimes) spec/im + std/skew/kurtosis</p>";
+        resp += "<p>Scan index fields: scanId, projid, prefsname, ra_deg, dec_deg, source, startTime, stopTime, datasource, scan_intent, scanNo, datasetId.</p>";
+        // resp contains the html to display
+        $("#help-info").html(resp).dialog({
+            width: '50%',
+            modal: true,
+            beforeClose: function() {
+                $(context).css("color", "black");
+            }
+        });
+	$(context).css("color", "red");
+    }
+
     function renderResult(options, record) {
 	var id = record.scanId.toString() + "_seg" + record.segment.toString() + "-i" + record.integration.toString() + "-dm" + record.dmind.toString() + "-dt" + record.dtind.toString();
         htmlString = "<div>candId: "
@@ -168,8 +192,9 @@
         {% if session.logged_in %}
 	htmlString += "<li>More info:</li>"
         htmlString += "<ul><li class=\"clickable\" onclick=\"click_scan(event, this, '" + record.scanId + "')\">Show scan info</li>"
-	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22candmjd%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"
-	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%20AND%20segment%5C%5C%3A" + record.segment.toString() + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22candmjd%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in segment</a></li></ul>"
+        htmlString += "<li class=\"clickable\" onclick=\"click_cands(event, this, '" + record.scanId + "')\">Show scan summary</li>"
+	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"
+	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%20AND%20segment%5C%5C%3A" + record.segment.toString() + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in segment</a></li></ul>"
         {% endif %}
 	htmlString += "</ul>"
 
@@ -197,7 +222,7 @@
                 search_url : "http://search.realfast.io/api/cands/cand/_search",
                 datatype : "json",
                 default_freetext_fuzzify: "*",
-                sort: [{"candmjd" : {"order" : "desc"}}],
+                sort: [{"snr1" : {"order" : "desc"}}],
                 facets: [ ],
                 default_facet_size: 12,
                 include_facets_in_url:false,
@@ -207,11 +232,7 @@
                     {'display':'snr1',         'field':'snr1'},
                     {'display':'candmjd',      'field':'candmjd'},
                 ],
-//                searchbox_fieldselect: [
-//                    {'display':'snr1',         'field':'snr1'},
-//                    {'display':'obs',         'field':'obs'},
-//                ],
-                search_button: false,
+                search_button: true,
                 sharesave_link: true,
                 debug: false,
                 stored_fields: ["scanId", "prefsname", "tags", "scan", "segment", "integration", "dmind", "dtind", "png_url", "candmjd", "canddm", "canddt", "snr1"],
@@ -220,7 +241,7 @@
              // selected_filters_in_facet: true,
                 show_filter_field : true,
                 show_filter_logic: true,
-                "pushstate" : false,
+                pushstate : false,
                 exclude_predefined_filters_from_facets : false
             });
         });
@@ -240,11 +261,7 @@
                     {'display':'ra_deg',         'field':'ra_deg'},
                     {'display':'dec_deg',         'field':'dec_deg'},
                 ],
-                searchbox_fieldselect: [
-                    {'display':'scanId',         'field':'scanId'},
-                    {'display':'prefsname',         'field':'prefsname'},
-                ],
-                search_button: false,
+                search_button: true,
                 sharesave_link: true,
                 debug: false,
                 stored_fields: ["scanId", "datasetId", "scan_intent", "datasource", "startTime", "stopTime", "ra_deg", "dec_deg", "scanNo", "subscanNo", "prefsname", "source"],
@@ -262,7 +279,7 @@
                     { "pre": " ", "field": "stopTime", "post": "</li>"},
                     { "pre": "<li>(RA, Dec): ", "field": "ra_deg", "post": "," },
                     { "pre": " ", "field": "dec_deg", "post": "</li>" },
-		    { "pre": "<li>More info: <ul><li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22", "field": "scanId", "post": "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22candmjd%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"},
+		    { "pre": "<li>More info: <ul><li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22", "field": "scanId", "post": "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"},
                     { "pre": "<li class=\"clickable\" onclick=\"click_cands(event, this, '", "field": "scanId", "post": "')\">Show scan summary</li>"},
                     { "pre": "<li class=\"clickable\" onclick=\"click_preference(event, this, '", "field": "prefsname", "post": "')\">Show preferences</li>"},
                     { "pre": "<li class=\"clickable\" onclick=\"click_mock(event, this, '", "field": "scanId", "post": "')\">Show mock transients</li></ul></ul>"},
@@ -285,14 +302,14 @@
         $("#tabs").tabs("select", {{curr_tab}});
     });
 
-    function mass_tag(stage, context) {
+    function group_tag(stage, context) {
         if (stage == 0) {
-            $("#mass-tag-dialog").dialog({
+            $("#group-tag-dialog").dialog({
                 modal: true,
-                width: "auto"
+                width: "50%"
             });
         } else if (stage == 1) {
-            var tmp = $("#mass-tag-dialog").html();
+            var tmp = $("#group-tag-dialog").html();
             var inputs = $(context).parent().children("input");
             var new_tags = "";
             for (var i = 0; i < inputs.length; i++) {
@@ -305,26 +322,26 @@
                     new_tags += ",";
                 }
             }
-	    $.get("/api/mass-tag", {"tags": new_tags}, function(resp) {
+	    $.get("/api/group-tag", {"tags": new_tags}, function(resp) {
 		response_info = JSON.parse(resp);
 		if (response_info.type == "failure") {
-		    $("#mass-tag-dialog").html("There was an error, not all tags may have been updated").dialog({
+		    $("#group-tag-dialog").html("There was an error, not all tags may have been updated").dialog({
 		        beforeClose: function() {
-		            $("#mass-tag-dialog").html(tmp);
+		            $("#group-tag-dialog").html(tmp);
 		        }
 		    });
 		} else {
-		    $("#mass-tag-dialog").html("Success! " + response_info.updated.toString() + " candidates updated.").dialog({
+		    $("#group-tag-dialog").html("Success! " + response_info.updated.toString() + " candidates updated.").dialog({
 		        beforeClose: function() {
-		            $("#mass-tag-dialog").html(tmp);
+		            $("#group-tag-dialog").html(tmp);
 			    $("[name=q]").keyup();
 		        }
 		    });
 		}
 	    })
-            $("#mass-tag-dialog").html("Working...").dialog({
+            $("#group-tag-dialog").html("Working...").dialog({
                 beforeClose: function() {
-                    $("#mass-tag-dialog").html(tmp);
+                    $("#group-tag-dialog").html(tmp);
                 }
             });
         }
@@ -333,17 +350,19 @@
 
   <style type="text/css">
     .facet-view-cands{
-      width:1170px;
+      width:90%;
       height:100%;
       margin:20px auto 0 auto;
       overflow: scroll;
+      font-size: 100%;
     }
 
     .facet-view-scans{
-        width:1170px;
+        width:90%;
         height:100%;
         margin:20px auto 0 auto;
         overflow: scroll;
+        font-size: 100%;
     }
 
     .tag-visual {
@@ -376,7 +395,7 @@
       cursor: pointer;
     }
 
-    #mass-tag-dialog {
+    #group-tag-dialog {
         display: none;
     }
   </style>
@@ -407,13 +426,15 @@
           {% endif %}
         </ul>
         <div id="tabs-1">
+          <button onclick="search_help(event, this)">?</button>
 	  {% if session.logged_in %}
-	    <button onclick="mass_tag(0, this)">Mass tag</button>
+	    <button onclick="group_tag(0, this)">Group tag</button>
 	  {% endif %}
 	  <div class="facet-view-cands"></div>
         </div>
         {% if session.logged_in %}
           <div id="tabs-2">
+            <button onclick="search_help(event, this)">?</button>
 	    <div class="facet-view-scans"></div>
           </div>
         {% endif %}
@@ -422,20 +443,21 @@
     <div id="cands-info" title="Cands info"></div>
     <div id="preference-info" title="Preference info"></div>
     <div id="mock-info" title="Mock info"></div>
-    <div id="mass-tag-dialog" title="Mass tag">
+    <div id="help-info" title="Help"></div>
+    <div id="group-tag-dialog" title="Group tag">
         <h3>Apply what tags to last search result?</h3>
-        <input type="checkbox" id="mass-tag-new" name="new"> new <br>
-	<input type="checkbox" id="mass-tag-rfi" name="rfi"> rfi <br>
-	<input type="checkbox" id="mass-tag-bad" name="bad"> bad <br>
-	<input type="checkbox" id="mass-tag-noise" name="noise"> noise <br>
-	<input type="checkbox" id="mass-tag-needs-flagging" name="needs flagging"> needs flagging <br>
-	<input type="checkbox" id="mass-tag-needs-review" name="needs review"> needs review <br>
-	<input type="checkbox" id="mass-tag-interesting" name="interesting"> interesting <br>
-	<input type="checkbox" id="mass-tag-pulsar" name="pulsar"> pulsar <br>
-	<input type="checkbox" id="mass-tag-frb" name="frb"> frb <br>
-	<input type="checkbox" id="mass-tag-mock" name="mock"> mock <br>
-	<input type="checkbox" id="mass-tag-public" name="public"> public <br>
-        <button onclick="mass_tag(1, this)">Next</button>
+        <input type="checkbox" id="group-tag-new" name="new"> new <br>
+	<input type="checkbox" id="group-tag-rfi" name="rfi"> rfi <br>
+	<input type="checkbox" id="group-tag-bad" name="bad"> bad <br>
+	<input type="checkbox" id="group-tag-noise" name="noise"> noise <br>
+	<input type="checkbox" id="group-tag-needs-flagging" name="needs flagging"> needs flagging <br>
+	<input type="checkbox" id="group-tag-needs-review" name="needs review"> needs review <br>
+	<input type="checkbox" id="group-tag-interesting" name="interesting"> interesting <br>
+	<input type="checkbox" id="group-tag-pulsar" name="pulsar"> pulsar <br>
+	<input type="checkbox" id="group-tag-frb" name="frb"> frb <br>
+	<input type="checkbox" id="group-tag-mock" name="mock"> mock <br>
+	<input type="checkbox" id="group-tag-public" name="public"> public <br>
+        <button onclick="group_tag(1, this)">Next</button>
     </div>
 </body>
 

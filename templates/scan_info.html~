@@ -1,0 +1,8 @@
+<ul>
+  <li>scanId: {{scanId}}, scan {{scanNo}}, subscan {{subscanNo}}</li>
+  <li>(startTime, stopTime): {{startTime}}, {{stopTime}}</li>
+  <li>(RA, Dec): {{ra_deg}}, {{dec_deg}}</li>
+  <li>(source, intent, datasource): {{source}}, {{scan_intent}}, {{datasource}}</li>
+  <li>preferences: {{prefsname}}</li>
+  <li><a href={{scanIdLink}}>Show all candidates for ScanId</a></li>
+</ul>
