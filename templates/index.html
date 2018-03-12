@@ -159,8 +159,8 @@
         // activate the search help
         url = "https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#_boolean_operators";
         resp = "<ul><li>Search examples:</li>";
-        resp += "<ul><li>tags:new AND candmdm:>100</li>";
-	resp += "<li>snr1:>10 AND !canddt:>0.02</li></ul>";
+        resp += "<ul><li>tags:new AND canddm:>100</li>";
+	resp += "<li>snr1:>10 AND NOT canddt:>0.02</li></ul>";
         resp += "<li>See also the <a href='" + url + "'>elasticsearch help</a>.</li>";
 	resp += "<li>If you see page stuck with 'SEARCHING' click the x to reset search.</li>";
 	resp += "<li>Click arrow to change sort order.</li>";
@@ -212,8 +212,11 @@
             }
         }
         {% endif %}
-        htmlString += "<img src=\"" + record.png_url + "\"><hr></div>"
-        return htmlString
+        if (record.png_url != "") {
+            htmlString += "<img src=\"" + record.png_url + "\">";
+        }
+        htmlString += "<hr></div>";
+        return htmlString;
     }
 
     jQuery(document).ready(function($) {
@@ -302,14 +305,33 @@
         $("#tabs").tabs("select", {{curr_tab}});
     });
 
-    function group_tag(stage, context) {
+    function reset_group_tag() {
+        var default_html = "";
+        default_html += '<h3>Apply what tags to last search result?</h3>';
+        default_html += '<input type="checkbox" id="group-tag-new" name="new"> new <br>';
+	default_html += '<input type="checkbox" id="group-tag-rfi" name="rfi"> rfi <br>';
+	default_html += '<input type="checkbox" id="group-tag-bad" name="bad"> bad <br>';
+	default_html += '<input type="checkbox" id="group-tag-noise" name="noise"> noise <br>';
+	default_html += '<input type="checkbox" id="group-tag-needs-flagging" name="needs flagging"> needs flagging <br>';
+	default_html += '<input type="checkbox" id="group-tag-needs-review" name="needs review"> needs review <br>';
+	default_html += '<input type="checkbox" id="group-tag-interesting" name="interesting"> interesting <br>';
+	default_html += '<input type="checkbox" id="group-tag-pulsar" name="pulsar"> pulsar <br>';
+	default_html += '<input type="checkbox" id="group-tag-frb" name="frb"> frb <br>';
+	default_html += '<input type="checkbox" id="group-tag-mock" name="mock"> mock <br>';
+	default_html += '<input type="checkbox" id="group-tag-public" name="public"> public <br>';
+        default_html += '<button onclick="group_tag(1, this)">Next</button>';
+        $("#group-tag-dialog").html(default_html);
+    }
+
+    function group_tag(stage, context, prevHTML) {
         if (stage == 0) {
             $("#group-tag-dialog").dialog({
                 modal: true,
                 width: "50%"
             });
         } else if (stage == 1) {
-            var tmp = $("#group-tag-dialog").html();
+            // confirm the number of candidates and tags
+
             var inputs = $(context).parent().children("input");
             var new_tags = "";
             for (var i = 0; i < inputs.length; i++) {
@@ -322,6 +344,46 @@
                     new_tags += ",";
                 }
             }
+
+            var new_tag_list = new_tags.split(",");
+            if (new_tag_list[0] != "_") {
+                for (var i = 1; i < new_tag_list.length; i++) {
+                    if (new_tag_list[i] != "_") {
+                        var errorText = "<p>You can't mix new/other tags.</p>";
+                        errorText += '<button onclick="group_tag(-1, this)">Back</button>';
+                        $("#group-tag-dialog").html(errorText).dialog({
+                            beforeClose: function() {
+                                reset_group_tag();
+                            }
+                        });
+                        return;
+                    }
+                }
+            }
+            selectedHTML = new_tags;
+            var confirmationText = "<p>Are you sure you want to re-tag these candidates with " + new_tags + "?</p>";
+            confirmationText += '<button onclick="group_tag(2, this, selectedHTML)">Yes</button>';
+            confirmationText += '<button onclick="group_tag(-1, this)">No</button>';
+            $("#group-tag-dialog").html(confirmationText).dialog({
+                beforeClose: function() {
+                    reset_group_tag();
+                }
+            });
+        } else if (stage == 2) {
+            //$("#group-tag-dialog").html(selectedHTML);
+            //var inputs = $(context).parent().children("input");
+            //var new_tags = "";
+            //for (var i = 0; i < inputs.length; i++) {
+            //    if ($(inputs[i]).is(":checked")) {
+            //        new_tags += $(inputs[i]).attr("name");
+            //    } else {
+            //        new_tags += "_";
+            //    }
+            //    if (i != inputs.length - 1) {
+            //        new_tags += ",";
+            //    }
+            //}
+            new_tags = selectedHTML;
 	    $.get("/api/group-tag", {"tags": new_tags}, function(resp) {
 		response_info = JSON.parse(resp);
 		if (response_info.type == "failure") {
@@ -333,7 +395,7 @@
 		} else {
 		    $("#group-tag-dialog").html("Success! " + response_info.updated.toString() + " candidates updated.").dialog({
 		        beforeClose: function() {
-		            $("#group-tag-dialog").html(tmp);
+		            reset_group_tag();
 			    $("[name=q]").keyup();
 		        }
 		    });
@@ -341,9 +403,25 @@
 	    })
             $("#group-tag-dialog").html("Working...").dialog({
                 beforeClose: function() {
-                    $("#group-tag-dialog").html(tmp);
+                    reset_group_tag();
                 }
             });
+        } else {
+            reset_group_tag();
+        }
+    }
+
+    function change_prefix() {
+        var prefix = $("#prefix-selection option:selected").html();
+        console.log(prefix);
+        if (prefix == "Default") {
+            $.get("/clear-prefix",
+                  function() { $("[name=q]").keyup(); }
+            );
+        } else {
+            $.get("/set-prefix/" + prefix,
+                  function() { $("[name=q]").keyup(); }
+            );
         }
     }
   </script>
@@ -423,6 +501,7 @@
           <li><a href="#tabs-1">Cands</a></li>
           {% if session.logged_in %}
             <li><a href="#tabs-2">Scans</a></li>
+            <li><a href="/get-curr-log">Log</a></li>
           {% endif %}
         </ul>
         <div id="tabs-1">
@@ -430,14 +509,35 @@
 	  {% if session.logged_in %}
 	    <button onclick="group_tag(0, this)">Group tag</button>
 	  {% endif %}
+	  <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22tags%5C%5C%3Anew%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show new</button></a>
+	  <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22png_url%5C%5C%3A%5C%22png%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show plots</button></a>
+          <span style="float: right"> Index selection:
+            <select id="prefix-selection" onchange="change_prefix()">
+              {% for prefix in index_prefixes %}
+		{% if session.prefix == prefix %}
+                  {% if prefix == "" %}
+                    <option selected="selected">Default</option>
+                  {% else %}
+                    <option selected="selected">{{prefix}}</option>
+                  {% endif %}
+		{% else %}
+                  {% if prefix == "" %}
+                    <option>Default</option>
+                  {% else %}
+                    <option>{{prefix}}</option>
+                  {% endif %}
+		{% endif %}
+	      {% endfor %}
+            </select>
+          </span>
 	  <div class="facet-view-cands"></div>
         </div>
-        {% if session.logged_in %}
+	{% if session.logged_in %}
           <div id="tabs-2">
             <button onclick="search_help(event, this)">?</button>
-	    <div class="facet-view-scans"></div>
+  	  <div class="facet-view-scans"></div>
           </div>
-        {% endif %}
+	{% endif %}
     </div>
     <div id="scan-info" title="Scan info"></div>
     <div id="cands-info" title="Cands info"></div>

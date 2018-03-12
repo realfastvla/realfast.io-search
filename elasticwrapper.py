@@ -5,14 +5,19 @@ import urllib
 import json
 from elasticsearch import Elasticsearch
 import pdb
-from datetime import timedelta
+from datetime import datetime, timedelta
 from functools import update_wrapper
+import markdown
+from threading import Lock
+import os
 
 
 app = Flask(__name__)
 CORS(app)
 app.secret_key = b'r8\x9f\xbda\xc8q]]\x9e\xbc\x82y\x08h\x95\x8b\xc9\xcb\xa8\xd8\x90\x93\x18'
-es = Elasticsearch("http://go-nrao-nm.aoc.nrao.edu:9200")
+es = Elasticsearch("http://go-nrao-nm.aoc.nrao.edu:9200", timeout=20)
+log_lock = Lock()
+index_prefixes = ["", "test", "aws"]
 
 def sanitize(s):
     s = s.replace("&", "&amp")
@@ -20,23 +25,69 @@ def sanitize(s):
     s = s.replace("<", "&lt")
     return s
 
+def log(action, target):
+    try:
+        log_lock.acquire()
+        with open("logs/active.log", "a") as log_file:
+            time = str(datetime.now())
+            log_file.write("[%s] %s %s on %s\n\n" % (time, session["userid"], action, target))
+    finally:
+        log_lock.release()
+
+@app.route("/clear-prefix")
+def clear_prefix():
+    session["prefix"] = ""
+    return "done"
+
+@app.route("/set-prefix/<pre>")
+def set_prefix(pre):
+    session["prefix"] = str(pre)
+    return "set prefix to {0}".format(pre)
+
+@app.route("/get-prefix")
+def get_prefix():
+    return session["prefix"]
+
+@app.route("/get-curr-log")
+def get_curr_log():
+    if session["logged_in"]:
+        try:
+            log_lock.acquire()
+            with open("logs/active.log", "r") as log_file:
+                contents = log_file.read()
+                return '<a href="/checkpoint-log"><button>Checkpoint</button></a><br><br>'+ markdown.markdown(contents)
+        finally:
+            log_lock.release()
+    else:
+        return "Not allowed!"
+
+@app.route("/checkpoint-log")
+def checkpoint_log():
+    if session["logged_in"]:
+        try:
+            log_lock.acquire()
+            with open("logs/active.log", "r") as log_file:
+                contents = log_file.read()
+                # email to casey
+                os.rename("logs/active.log", "logs/checkpoint%s.log" % str(datetime.now()).replace(" ", "_"))
+                open("logs/active.log", "w+").close()
+        finally:
+            log_lock.release()
+            flash("Successfully saved log!", "success")
+            return redirect(url_for("index"), code=302)
+    else:
+        flash("Not allowed!", "error")
+        return redirect(url_for("index"), code=302)
+
 @app.route("/")
 def index():
     # return the frontend
-    return render_template("index.html", curr_tab=0)
+    return render_template("index.html", index_prefixes=index_prefixes, curr_tab=0)
 
 @app.route("/filter")
 def filter_by_tag():
     # set a session cookie to preprocess all queries
     return
-
-@app.route("/scans")
-def scans_index():
-    if request.args.get("id", ""):
-        id = request.args.get("id", "")
-    else:
-        id = ""
-    return render_template("index.html", curr_tab=1, id=id)
 
 @app.route("/login")
 def login():
@@ -53,6 +104,7 @@ def callback():
         allowed_users = open("allowed_users", "r").read().split()
         if userid in allowed_users:
             session["logged_in"] = True
+            session["userid"] = userid
             flash("Successfully logged in!", "success")
         else:
             flash("Invalid credentials", "error")
@@ -61,6 +113,7 @@ def callback():
 @app.route("/logout")
 def logout():
     del session["logged_in"]
+    del session["userid"]
     return redirect(url_for("index"), code=302)
 
 @app.route("/api", defaults={"query": ""}, methods=["GET"])
@@ -78,28 +131,40 @@ def get_api(query):
             session["request_string"] = session["last_request"]["query_string"]["query"]
         except KeyError:
             print("KeyError!")
-        print("*"*100 + str(session["last_request"]))
 
     if session.get("logged_in"):
-        query = "/".join(request.full_path.split("/")[2:])
+        if "prefix" in session.keys():
+            prefix = session["prefix"]
+        else:
+            prefix = ""
+        query = request.full_path.split("/")[2:]
+        query[0] = prefix + query[0]
+        query[1] = prefix + query[1]
+        query = "/".join(query)
+        print(query)
         # get rid of backslashes in URL (but not before "), it seems facetview doesn't account for this
         query = query.replace("%5C%5C", "")
         resp = requests.get("http://go-nrao-nm.aoc.nrao.edu:9200/" + query)
-        print(resp)
         resp = make_response(resp.text)
         resp.set_cookie("last_request", str(session["last_request"]))
         return resp
     else:
         query_obj = json.loads(urllib.parse.unquote(request.args.get("source")))
         old_query = query_obj["query"]
-        new_query = {"bool": {"must": [{"match": {"tags": "public"}}]}}
+        if "query_string" in old_query.keys():
+            old_query2 = old_query["query_string"]
+            print("old_query2", old_query2)
+        else:
+            print("old_query", old_query)
+        new_query = {"bool": {"must":  {"match": {"tags": "public"}}}}
+#        new_query = {"bool": {"must": [{"match": old_query}, {"match": {"tags": "public"}}]}}  # "must" can take a list, so this is almost right
         query_obj["query"] = new_query
         query_string = urllib.parse.quote(json.dumps(query_obj))
         resp = requests.get("http://go-nrao-nm.aoc.nrao.edu:9200/" + '/'.join(request.path.split("/")[2:]) + "?source=" + query_string)
         print("*"*100)
         print("http://go-nrao-nm.aoc.nrao.edu:9200/" + '/'.join(request.path.split("/")[2:]) + "?source=" + query_string)
-        print(query_obj)
-        print(resp.text)
+#        print(query_obj)
+#        print(resp.text)
         print("*"*100)
         return resp.text
 
@@ -109,12 +174,19 @@ def add_candidate_tag(id):
     tag = sanitize(request.args.get("tag"))
     if tag not in allowed_tags:
         return
-    doc = es.get(index="cands", doc_type="cand", id=id, _source=["tags"])
+    if "prefix" in session.keys():
+        prefix = session["prefix"]
+    else:
+        prefix = ""
+    doc = es.get(index=prefix+"cands", doc_type=prefix+"cand", id=id, _source=["tags"])
     old_tags = doc["_source"]["tags"]
     tags = old_tags.split(",")
+    if len(tags) == 1:
+        tags = ["new", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_"]
     tags[allowed_tags.index(tag)] = tag
     new_tags = ",".join(tags)
-    resp = es.update("cands", "cand", id, {"doc": {"tags": new_tags}})
+    resp = es.update(prefix+"cands", prefix+"cand", id, {"doc": {"tags": new_tags}})
+    log("added tag %s" % tag, "candidate %s" % id)
     return json.dumps(resp)
 
 @app.route("/api/remove_tag/<id>", methods=["GET"])
@@ -123,17 +195,28 @@ def remove_candidate_tag(id):
     tag = sanitize(request.args.get("tag"))
     if tag not in allowed_tags:
         return
-    doc = es.get(index="cands", doc_type="cand", id=id, _source=["tags"])
+    if "prefix" in session.keys():
+        prefix = session["prefix"]
+    else:
+        prefix = ""
+    doc = es.get(index=prefix+"cands", doc_type=prefix+"cand", id=id, _source=["tags"])
     old_tags = doc["_source"]["tags"]
     tags = old_tags.split(",")
+    if len(tags) == 1:
+        tags = ["new", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_"]
     tags[allowed_tags.index(tag)] = "_"
     new_tags = ",".join(tags)
-    resp = es.update("cands", "cand", id, {"doc": {"tags": new_tags}})
+    resp = es.update(prefix+"cands", prefix+"cand", id, {"doc": {"tags": new_tags}})
+    log("removed tag %s" % tag, "candidate %s" % id)
     return json.dumps(resp)
 
 @app.route("/api/scan-info/<id>")
 def get_scan_info(id):
-    record = es.get(index="scans", doc_type="scan", id=id)
+    if "prefix" in session.keys():
+        prefix = session["prefix"]
+    else:
+        prefix = ""
+    record = es.get(index=prefix+"scans", doc_type=prefix+"scan", id=id)
     doc = record["_source"]
     scanId = doc["scanId"]
     scanIdLink = "http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22idgoeshere%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D".replace("idgoeshere", scanId)
@@ -151,7 +234,11 @@ def get_scan_info(id):
 
 @app.route("/api/preference-info/<id>")
 def get_preference_info(id):
-    record = es.get(index="preferences", doc_type="preference", id=id)
+    if "prefix" in session.keys():
+        prefix = session["prefix"]
+    else:
+        prefix = ""
+    record = es.get(index=prefix+"preferences", doc_type=prefix+"preference", id=id)
     doc = record["_source"]
     dmarr = doc["dmarr"]
     dtarr = doc["dtarr"]
@@ -182,7 +269,12 @@ def get_preference_info(id):
 @app.route("/api/mock-info/<id>")
 def get_mock_info(id):
     try:
-        record = es.get(index="mocks", doc_type="mock", id=id)
+        if "prefix" in session.keys():
+            prefix = session["prefix"]
+        else:
+            prefix = ""
+        print("record = es.get(index={0}mocks, doc_type={0}mock, id={1})".format(prefix, id))
+        record = es.get(index=prefix+"mocks", doc_type=prefix+"mock", id=id)
         doc = record["_source"]
         scanId = doc["scanId"]
         segment = doc["segment"]
@@ -216,17 +308,26 @@ def group_tag():
             "lang": "painless"
         }
     }
-    resp = es.update_by_query(body=q, doc_type="cand", index="cands")
+    if "prefix" in session.keys():
+        prefix = session["prefix"]
+    else:
+        prefix = ""
+    resp = es.update_by_query(body=q, doc_type="cand", index=prefix+"cands")
     response_info = {"total": resp["total"], "updated": resp["updated"], "type": "success"}
     if resp["failures"] != []:
         response_info["type"] = "failure"
+    log("group tagged %s" % new_tags, "query %s" % last_request)
     return json.dumps(response_info)
 
 # not working?
 @app.route("/api/group-tag-count")
 def group_tag_count():
+    if "prefix" in session.keys():
+        prefix = session["prefix"]
+    else:
+        prefix = ""
     last_request = session.get("last_request")
     q = {"query": last_request}
-    resp = es.search(body=q, doc_type="cand", index="cands")
-    response_info = {"total": resp["total"]}
+    resp = es.search(body=q, doc_type=prefix+"cand", index=prefix+"cands")
+    response_info = {"total": resp["hits"]["total"]}
     return json.dumps(response_info)
