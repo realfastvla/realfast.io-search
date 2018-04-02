@@ -20,63 +20,6 @@
   <link rel="stylesheet" href="{{url_for('static', filename='css/facetview.css')}}">
 
   <script type="text/javascript">
-    <!-- function processAddTagButtonClick(context) { -->
-    <!--     // set up adding a tag -->
-    <!--     var tag = $(context).parent().find("input").val() -->
-    <!--     $(context).parent().find("input").val("") -->
-    <!--     var src = $(context).parent().parent().children("img").attr("src") -->
-    <!--     var parsedURL = src.slice(0, src.length-4).split("/") -->
-    <!--     var idTemp = parsedURL[parsedURL.length - 1] -->
-    <!--     var id = idTemp.slice(6) -->
-
-    <!--     addTag(context, id, tag) -->
-    <!-- } -->
-
-    <!-- function processRemoveTagButtonClick(context) { -->
-    <!--     // set up removing a tag -->
-    <!--     var tag = $(context).parent().find("p").html() -->
-    <!--     var src = $(context).parent().parent().parent().children("img").attr("src") -->
-    <!--     var parsedURL = src.slice(0, src.length-4).split("/") -->
-    <!--     var idTemp = parsedURL[parsedURL.length - 1] -->
-    <!--     var id = idTemp.slice(6) -->
-
-    <!--     removeTag(context, id, tag) -->
-    <!-- } -->
-
-    <!-- function removeTag(context, id, tag) { -->
-    <!--     $.post("http://search.realfast.io/api/remove_tag/" + id, -->
-    <!--         { -->
-    <!--             "tag": tag -->
-    <!--         }, -->
-    <!--         function(resp) { -->
-    <!--             // remove the tag from the DOM -->
-    <!--             var tags = $(context).parent().parent() -->
-    <!--             tags = tags.children() -->
-    <!--             for (var i = 0; i < tags.length; i++) { -->
-    <!--                 t = $(tags[i]) -->
-    <!--                 console.log(t) -->
-    <!--                 if (t.find("p").html() == tag) { -->
-    <!--                     t.remove() -->
-    <!--                     break -->
-    <!--                 } -->
-    <!--             } -->
-    <!--         } -->
-    <!--     )         -->
-    <!-- } -->
-
-    <!-- function addTag(context, id, tag) { -->
-    <!--     $.post("http://search.realfast.io/api/add_tag/" + id, -->
-    <!--         { -->
-    <!--             "tag": tag -->
-    <!--         }, -->
-    <!--         function(resp) { -->
-    <!--             // add the tag to the DOM -->
-    <!--             var tags = $(context).parent().parent().find(".tag-visual-list") -->
-    <!--             tags.append("<span class=\"tag-visual\"><p>" + tag + "</p><img onclick=\"processRemoveTagButtonClick(this)\" src=\"{{url_for('static', filename='cancel.png')}}\"></span>") -->
-    <!--         } -->
-    <!--     ) -->
-    <!-- } -->
-
     function change_tag(id, context) {
         var tag = $(context).attr("name");
 	if ($(context).is(":checked")) {
@@ -199,19 +142,24 @@
 	htmlString += "</ul>"
 
         {% if session.logged_in %}
-        var possible_tags = ["new", "rfi", "bad", "noise", "needs flagging", "needs review", "interesting", "pulsar", "frb", "mock", "public"];
-        console.log("here");
-        console.log(record.tags);
-        console.log(id);
-	var record_tags = record.tags.split(",")
-        for (var i = 0; i < possible_tags.length; i++) {
-            if (record_tags[i] == possible_tags[i]) {
-                htmlString += "<input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" name=\"" + possible_tags[i] + "\" checked> " + possible_tags[i] + " "
-            } else {
-                htmlString += "<input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" name=\"" + possible_tags[i] + "\"> " + possible_tags[i] + " "
+        var found = false;
+        var tag_history = record.tags.split(";");
+        for (var i = 0; i < tag_history.length; i++) {
+            var curr = tag_history[i].split(":");
+            if (curr[0] == {{ session.userid|tojson|safe }}) {
+                htmlString += "<p style=\"color: red\">You've already tagged this!</p>";
+                found = true;
+                break;
             }
         }
+        if (!found) {
+           var possible_tags = ["new", "rfi", "bad", "noise", "needs flagging", "needs review", "interesting", "pulsar", "frb", "mock", "public"];
+           for (var i = 0; i < possible_tags.length; i++) {
+             htmlString += "<input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" name=\"" + possible_tags[i] + "\"> " + possible_tags[i] + " "; 
+           }
+        }
         {% endif %}
+
         if (record.png_url != "") {
             htmlString += "<img src=\"" + record.png_url + "\">";
         }

@@ -168,6 +168,22 @@ def get_api(query):
         print("*"*100)
         return resp.text
 
+def tag_hist_to_dict(s):
+    if ":" not in s:
+        s = "andrewhalle:_,_,_,_,_,_,_,_,_,_"
+    retval = {}
+    people = s.split(";")
+    for p in people:
+        curr = p.split(":")
+        retval[curr[0]] = curr[1]
+    return retval
+
+def tag_hist_from_dict(d):
+    retval = ""
+    for key, value in d.items():
+        retval += key + ":" + value + ";"
+    return retval[:len(retval)-1]
+
 @app.route("/api/add_tag/<id>", methods=["GET"])
 def add_candidate_tag(id):
     allowed_tags = ["new", "rfi", "bad", "noise", "needs flagging", "needs review", "interesting", "pulsar", "frb", "mock", "public"]
@@ -179,12 +195,13 @@ def add_candidate_tag(id):
     else:
         prefix = ""
     doc = es.get(index=prefix+"cands", doc_type=prefix+"cand", id=id, _source=["tags"])
-    old_tags = doc["_source"]["tags"]
-    tags = old_tags.split(",")
-    if len(tags) == 1:
-        tags = ["new", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_"]
-    tags[allowed_tags.index(tag)] = tag
-    new_tags = ",".join(tags)
+    tag_history = tag_hist_to_dict(doc["_source"]["tags"])
+    if session["userid"] not in tag_history:
+        tag_history[session["userid"]] = "_,_,_,_,_,_,_,_,_,_"
+    old_tags = tag_history[session["userid"]].split(",")
+    old_tags[allowed_tags.index(tag)] = tag
+    tag_history[session["userid"]] = ",".join(old_tags)
+    new_tags = tag_hist_from_dict(tag_history)
     resp = es.update(prefix+"cands", prefix+"cand", id, {"doc": {"tags": new_tags}})
     log("added tag %s" % tag, "candidate %s" % id)
     return json.dumps(resp)
