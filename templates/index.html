@@ -142,13 +142,26 @@
 	htmlString += "</ul>"
 
         {% if session.logged_in %}
+        var possible_tags = ["new", "rfi", "bad", "noise", "needs flagging", "needs review", "interesting", "pulsar", "frb", "mock", "public"];
         var found = false;
+        var run_loop = record.tags.includes(":");
+        var curr_tags;
         var tag_history = record.tags.split(";");
         for (var i = 0; i < tag_history.length; i++) {
+            if (!run_loop) {
+                break;
+            }
             var curr = tag_history[i].split(":");
             if (curr[0] == {{ session.userid|tojson|safe }}) {
-                htmlString += "<p style=\"color: red\">You've already tagged this!</p>";
                 found = true;
+                curr_tags = curr[1].split(",");
+                for (var i = 0; i < possible_tags.length; i++) {
+                    if (curr_tags[i] == possible_tags[i]) {
+                        htmlString += "<input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" name=\"" + possible_tags[i] + "\" checked> " + possible_tags[i] + " ";
+                    } else {
+                        htmlString += "<input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" name=\"" + possible_tags[i] + "\"> " + possible_tags[i] + " ";
+                    }
+                }
                 break;
             }
         }

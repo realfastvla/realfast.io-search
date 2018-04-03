@@ -170,7 +170,7 @@ def get_api(query):
 
 def tag_hist_to_dict(s):
     if ":" not in s:
-        s = "andrewhalle:_,_,_,_,_,_,_,_,_,_"
+        return {}
     retval = {}
     people = s.split(";")
     for p in people:
@@ -194,6 +194,12 @@ def add_candidate_tag(id):
         prefix = session["prefix"]
     else:
         prefix = ""
+
+    # experimental guard
+    if prefix != "test":
+        raise ValueError("can't use this feature outside test index on experimental branch")
+    # end guard
+
     doc = es.get(index=prefix+"cands", doc_type=prefix+"cand", id=id, _source=["tags"])
     tag_history = tag_hist_to_dict(doc["_source"]["tags"])
     if session["userid"] not in tag_history:
@@ -216,11 +222,20 @@ def remove_candidate_tag(id):
         prefix = session["prefix"]
     else:
         prefix = ""
+
+    # experimental guard
+    if prefix != "test":
+        raise ValueError("can't use this feature outside test index on experimental branch")
+    # end guard
+
     doc = es.get(index=prefix+"cands", doc_type=prefix+"cand", id=id, _source=["tags"])
-    old_tags = doc["_source"]["tags"]
-    tags = old_tags.split(",")
-    if len(tags) == 1:
-        tags = ["new", "_", "_", "_", "_", "_", "_", "_", "_", "_", "_"]
+    tag_history = tag_hist_to_dict(doc["_source"]["tags"])
+    if session["userid"] not in tag_history:
+        tag_history[session["userid"]] = "_,_,_,_,_,_,_,_,_,_"
+    old_tags = tag_history[session["userid"]].split(",")
+    old_tags[allowed_tags.index(tag)] = "_"
+    tag_history[session["userid"]] = ",".join(old_tags)
+    new_tags = tag_hist_from_dict(tag_history)
     tags[allowed_tags.index(tag)] = "_"
     new_tags = ",".join(tags)
     resp = es.update(prefix+"cands", prefix+"cand", id, {"doc": {"tags": new_tags}})
@@ -316,6 +331,11 @@ def get_cands_plot(id):
 
 @app.route("/api/group-tag")
 def group_tag():
+
+    # experimental guard
+    raise ValueError("can't use this feature on experimental branch")
+    # end guard
+
     last_request = session.get("last_request")
     new_tags = request.args.get("tags")
     q = {
