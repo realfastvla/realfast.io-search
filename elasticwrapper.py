@@ -236,8 +236,6 @@ def remove_candidate_tag(id):
     old_tags[allowed_tags.index(tag)] = "_"
     tag_history[session["userid"]] = ",".join(old_tags)
     new_tags = tag_hist_from_dict(tag_history)
-    tags[allowed_tags.index(tag)] = "_"
-    new_tags = ",".join(tags)
     resp = es.update(prefix+"cands", prefix+"cand", id, {"doc": {"tags": new_tags}})
     log("removed tag %s" % tag, "candidate %s" % id)
     return json.dumps(resp)
