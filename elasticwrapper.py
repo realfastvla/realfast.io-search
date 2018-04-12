@@ -18,7 +18,7 @@ app.secret_key = b'r8\x9f\xbda\xc8q]]\x9e\xbc\x82y\x08h\x95\x8b\xc9\xcb\xa8\xd8\
 es = Elasticsearch("http://go-nrao-nm.aoc.nrao.edu:9200", timeout=20)
 log_lock = Lock()
 index_prefixes = ["", "test", "aws"]
-allowed_tags = ["new", "rfi", "bad", "noise", "needs flagging", "needs review", "interesting", "pulsar", "frb", "mock", "public", "testing"]
+allowed_tags = ["new", "rfi", "bad", "noise", "needs flagging", "needs review", "interesting", "pulsar", "frb", "mock", "public"]
 
 
 def sanitize(s):
