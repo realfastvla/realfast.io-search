@@ -142,34 +142,20 @@
 	htmlString += "</ul>"
 
         {% if session.logged_in %}
-        var possible_tags = ["new", "rfi", "bad", "noise", "needs flagging", "needs review", "interesting", "pulsar", "frb", "mock", "public"];
-        var found = false;
-        var run_loop = record.tags.includes(":");
-        var curr_tags;
-        var tag_history = record.tags.split(";");
-        for (var i = 0; i < tag_history.length; i++) {
-            if (!run_loop) {
-                break;
+        var possible_tags = {{ allowed_tags|tojson|safe }};
+        if (!record.{{ session.userid }}_tags) {
+            for (var i = 0; i < possible_tags.length; i++) {
+                htmlString += "<input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" name=\"" + possible_tags[i] + "\"> " + possible_tags[i] + " ";
             }
-            var curr = tag_history[i].split(":");
-            if (curr[0] == {{ session.userid|tojson|safe }}) {
-                found = true;
-                curr_tags = curr[1].split(",");
-                for (var i = 0; i < possible_tags.length; i++) {
-                    if (curr_tags[i] == possible_tags[i]) {
-                        htmlString += "<input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" name=\"" + possible_tags[i] + "\" checked> " + possible_tags[i] + " ";
-                    } else {
-                        htmlString += "<input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" name=\"" + possible_tags[i] + "\"> " + possible_tags[i] + " ";
-                    }
+        } else {
+            var curr_tags = record.{{ session.userid }}_tags.split(",");
+            for (var i = 0; i < possible_tags.length; i++) {
+                if (curr_tags.includes(possible_tags[i])) {
+                    htmlString += "<input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" name=\"" + possible_tags[i] + "\" checked> " + possible_tags[i] + " ";
+                } else {
+                    htmlString += "<input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" name=\"" + possible_tags[i] + "\"> " + possible_tags[i] + " ";
                 }
-                break;
             }
-        }
-        if (!found) {
-           var possible_tags = ["new", "rfi", "bad", "noise", "needs flagging", "needs review", "interesting", "pulsar", "frb", "mock", "public"];
-           for (var i = 0; i < possible_tags.length; i++) {
-             htmlString += "<input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" name=\"" + possible_tags[i] + "\"> " + possible_tags[i] + " "; 
-           }
         }
         {% endif %}
 
@@ -199,7 +185,7 @@
                 search_button: true,
                 sharesave_link: true,
                 debug: false,
-                stored_fields: ["scanId", "prefsname", "tags", "scan", "segment", "integration", "dmind", "dtind", "png_url", "candmjd", "canddm", "canddt", "snr1"],
+                stored_fields: ["scanId", "prefsname",{% if session.logged_in %}{{ (session.userid + "_tags")|tojson|safe }},{% endif %}"scan", "segment", "integration", "dmind", "dtind", "png_url", "candmjd", "canddm", "canddt", "snr1"],
                 render_results_metadata: pageSlider,
                 render_result_record: renderResult,
              // selected_filters_in_facet: true,
@@ -269,17 +255,9 @@
     function reset_group_tag() {
         var default_html = "";
         default_html += '<h3>Apply what tags to last search result?</h3>';
-        default_html += '<input type="checkbox" id="group-tag-new" name="new"> new <br>';
-	default_html += '<input type="checkbox" id="group-tag-rfi" name="rfi"> rfi <br>';
-	default_html += '<input type="checkbox" id="group-tag-bad" name="bad"> bad <br>';
-	default_html += '<input type="checkbox" id="group-tag-noise" name="noise"> noise <br>';
-	default_html += '<input type="checkbox" id="group-tag-needs-flagging" name="needs flagging"> needs flagging <br>';
-	default_html += '<input type="checkbox" id="group-tag-needs-review" name="needs review"> needs review <br>';
-	default_html += '<input type="checkbox" id="group-tag-interesting" name="interesting"> interesting <br>';
-	default_html += '<input type="checkbox" id="group-tag-pulsar" name="pulsar"> pulsar <br>';
-	default_html += '<input type="checkbox" id="group-tag-frb" name="frb"> frb <br>';
-	default_html += '<input type="checkbox" id="group-tag-mock" name="mock"> mock <br>';
-	default_html += '<input type="checkbox" id="group-tag-public" name="public"> public <br>';
+        {% for tag in allowed_tags %}
+            default_html += '<input type="checkbox" id="group-tag-{{ tag }}" name="{{ tag }}"> {{ tag }} <br>';
+        {% endfor %}
         default_html += '<button onclick="group_tag(1, this)">Next</button>';
         $("#group-tag-dialog").html(default_html);
     }
@@ -298,29 +276,13 @@
             for (var i = 0; i < inputs.length; i++) {
                 if ($(inputs[i]).is(":checked")) {
                     new_tags += $(inputs[i]).attr("name");
-                } else {
-                    new_tags += "_";
-                }
-                if (i != inputs.length - 1) {
                     new_tags += ",";
                 }
             }
-
-            var new_tag_list = new_tags.split(",");
-            if (new_tag_list[0] != "_") {
-                for (var i = 1; i < new_tag_list.length; i++) {
-                    if (new_tag_list[i] != "_") {
-                        var errorText = "<p>You can't mix new/other tags.</p>";
-                        errorText += '<button onclick="group_tag(-1, this)">Back</button>';
-                        $("#group-tag-dialog").html(errorText).dialog({
-                            beforeClose: function() {
-                                reset_group_tag();
-                            }
-                        });
-                        return;
-                    }
-                }
+            if (new_tags != "") {
+                new_tags = new_tags.slice(0, new_tags.length-1);
             }
+
             selectedHTML = new_tags;
             var confirmationText = "<p>Are you sure you want to re-tag these candidates with " + new_tags + "?</p>";
             confirmationText += '<button onclick="group_tag(2, this, selectedHTML)">Yes</button>';
@@ -331,19 +293,6 @@
                 }
             });
         } else if (stage == 2) {
-            //$("#group-tag-dialog").html(selectedHTML);
-            //var inputs = $(context).parent().children("input");
-            //var new_tags = "";
-            //for (var i = 0; i < inputs.length; i++) {
-            //    if ($(inputs[i]).is(":checked")) {
-            //        new_tags += $(inputs[i]).attr("name");
-            //    } else {
-            //        new_tags += "_";
-            //    }
-            //    if (i != inputs.length - 1) {
-            //        new_tags += ",";
-            //    }
-            //}
             new_tags = selectedHTML;
 	    $.get("/api/group-tag", {"tags": new_tags}, function(resp) {
 		response_info = JSON.parse(resp);
@@ -509,17 +458,9 @@
     <div id="help-info" title="Help"></div>
     <div id="group-tag-dialog" title="Group tag">
         <h3>Apply what tags to last search result?</h3>
-        <input type="checkbox" id="group-tag-new" name="new"> new <br>
-	<input type="checkbox" id="group-tag-rfi" name="rfi"> rfi <br>
-	<input type="checkbox" id="group-tag-bad" name="bad"> bad <br>
-	<input type="checkbox" id="group-tag-noise" name="noise"> noise <br>
-	<input type="checkbox" id="group-tag-needs-flagging" name="needs flagging"> needs flagging <br>
-	<input type="checkbox" id="group-tag-needs-review" name="needs review"> needs review <br>
-	<input type="checkbox" id="group-tag-interesting" name="interesting"> interesting <br>
-	<input type="checkbox" id="group-tag-pulsar" name="pulsar"> pulsar <br>
-	<input type="checkbox" id="group-tag-frb" name="frb"> frb <br>
-	<input type="checkbox" id="group-tag-mock" name="mock"> mock <br>
-	<input type="checkbox" id="group-tag-public" name="public"> public <br>
+        {% for tag in allowed_tags %}
+        <input type="checkbox" id="group-tag-{{ tag }}" name="{{ tag }}"> {{ tag }} <br>
+        {% endfor %}
         <button onclick="group_tag(1, this)">Next</button>
     </div>
 </body>

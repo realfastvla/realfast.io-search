@@ -18,6 +18,8 @@ app.secret_key = b'r8\x9f\xbda\xc8q]]\x9e\xbc\x82y\x08h\x95\x8b\xc9\xcb\xa8\xd8\
 es = Elasticsearch("http://go-nrao-nm.aoc.nrao.edu:9200", timeout=20)
 log_lock = Lock()
 index_prefixes = ["", "test", "aws"]
+allowed_tags = ["new", "rfi", "bad", "noise", "needs flagging", "needs review", "interesting", "pulsar", "frb", "mock", "public", "testing"]
+
 
 def sanitize(s):
     s = s.replace("&", "&amp")
@@ -82,7 +84,7 @@ def checkpoint_log():
 @app.route("/")
 def index():
     # return the frontend
-    return render_template("index.html", index_prefixes=index_prefixes, curr_tab=0)
+    return render_template("index.html", index_prefixes=index_prefixes, allowed_tags=allowed_tags, curr_tab=0)
 
 @app.route("/filter")
 def filter_by_tag():
@@ -168,25 +170,9 @@ def get_api(query):
         print("*"*100)
         return resp.text
 
-def tag_hist_to_dict(s):
-    if ":" not in s:
-        return {}
-    retval = {}
-    people = s.split(";")
-    for p in people:
-        curr = p.split(":")
-        retval[curr[0]] = curr[1]
-    return retval
-
-def tag_hist_from_dict(d):
-    retval = ""
-    for key, value in d.items():
-        retval += key + ":" + value + ";"
-    return retval[:len(retval)-1]
 
 @app.route("/api/add_tag/<id>", methods=["GET"])
 def add_candidate_tag(id):
-    allowed_tags = ["new", "rfi", "bad", "noise", "needs flagging", "needs review", "interesting", "pulsar", "frb", "mock", "public"]
     tag = sanitize(request.args.get("tag"))
     if tag not in allowed_tags:
         return
@@ -200,21 +186,23 @@ def add_candidate_tag(id):
         raise ValueError("can't use this feature outside test index on experimental branch")
     # end guard
 
-    doc = es.get(index=prefix+"cands", doc_type=prefix+"cand", id=id, _source=["tags"])
-    tag_history = tag_hist_to_dict(doc["_source"]["tags"])
-    if session["userid"] not in tag_history:
-        tag_history[session["userid"]] = "_,_,_,_,_,_,_,_,_,_"
-    old_tags = tag_history[session["userid"]].split(",")
-    old_tags[allowed_tags.index(tag)] = tag
-    tag_history[session["userid"]] = ",".join(old_tags)
-    new_tags = tag_hist_from_dict(tag_history)
-    resp = es.update(prefix+"cands", prefix+"cand", id, {"doc": {"tags": new_tags}})
+    doc = es.get(index=prefix+"cands", doc_type=prefix+"cand", id=id, _source=[session["userid"]+"_tags"])
+    if session["userid"]+"_tags" in doc["_source"]:
+        curr_tags = doc["_source"][session["userid"]+"_tags"]
+        tag_list = curr_tags.split(",")
+        if tag in tag_list:
+            return
+        else:
+            tag_list.append(tag)
+            new_tags = ",".join(tag_list)
+    else:
+        new_tags = tag
+    resp = es.update(prefix+"cands", prefix+"cand", id, {"doc": {session["userid"]+"_tags": new_tags}})
     log("added tag %s" % tag, "candidate %s" % id)
     return json.dumps(resp)
 
 @app.route("/api/remove_tag/<id>", methods=["GET"])
 def remove_candidate_tag(id):
-    allowed_tags = ["new", "rfi", "bad", "noise", "needs flagging", "needs review", "interesting", "pulsar", "frb", "mock", "public"]
     tag = sanitize(request.args.get("tag"))
     if tag not in allowed_tags:
         return
@@ -228,17 +216,24 @@ def remove_candidate_tag(id):
         raise ValueError("can't use this feature outside test index on experimental branch")
     # end guard
 
-    doc = es.get(index=prefix+"cands", doc_type=prefix+"cand", id=id, _source=["tags"])
-    tag_history = tag_hist_to_dict(doc["_source"]["tags"])
-    if session["userid"] not in tag_history:
-        tag_history[session["userid"]] = "_,_,_,_,_,_,_,_,_,_"
-    old_tags = tag_history[session["userid"]].split(",")
-    old_tags[allowed_tags.index(tag)] = "_"
-    tag_history[session["userid"]] = ",".join(old_tags)
-    new_tags = tag_hist_from_dict(tag_history)
-    resp = es.update(prefix+"cands", prefix+"cand", id, {"doc": {"tags": new_tags}})
+    doc = es.get(index=prefix+"cands", doc_type=prefix+"cand", id=id, _source=[session["userid"]+"_tags"])
+    if session["userid"]+"_tags" in doc["_source"]:
+        curr_tags = doc["_source"][session["userid"]+"_tags"]
+        tag_list = curr_tags.split(",")
+        if tag not in tag_list:
+            return
+        else:
+            tag_list.remove(tag)
+            new_tags = ",".join(tag_list)
+    else:
+        return
+    if new_tags != "":
+        resp = es.update(prefix+"cands", prefix+"cand", id, {"doc": {session["userid"]+"_tags": new_tags}})
+    else:
+        resp = es.update(prefix+"cands", prefix+"cand", id, {"script": 'ctx._source.remove("' + session["userid"]+"_tags" + '")'})
     log("removed tag %s" % tag, "candidate %s" % id)
     return json.dumps(resp)
+
 
 @app.route("/api/scan-info/<id>")
 def get_scan_info(id):
@@ -329,17 +324,12 @@ def get_cands_plot(id):
 
 @app.route("/api/group-tag")
 def group_tag():
-
-    # experimental guard
-    raise ValueError("can't use this feature on experimental branch")
-    # end guard
-
     last_request = session.get("last_request")
     new_tags = request.args.get("tags")
     q = {
         "query": last_request,
         "script": {
-            "inline": "ctx._source.tags='" + new_tags + "'",
+            "inline": "ctx._source." + session["userid"] + "_tags='" + new_tags + "'",
             "lang": "painless"
         }
     }
@@ -347,7 +337,13 @@ def group_tag():
         prefix = session["prefix"]
     else:
         prefix = ""
-    resp = es.update_by_query(body=q, doc_type="cand", index=prefix+"cands")
+
+    # experimental guard
+    if prefix != "test":
+        raise ValueError("can't use this feature outside test index on experimental branch")
+    # end guard
+
+    resp = es.update_by_query(body=q, doc_type=prefix+"cand", index=prefix+"cands")
     response_info = {"total": resp["total"], "updated": resp["updated"], "type": "success"}
     if resp["failures"] != []:
         response_info["type"] = "failure"
