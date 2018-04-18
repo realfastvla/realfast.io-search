@@ -17,7 +17,7 @@ CORS(app)
 app.secret_key = b'r8\x9f\xbda\xc8q]]\x9e\xbc\x82y\x08h\x95\x8b\xc9\xcb\xa8\xd8\x90\x93\x18'
 es = Elasticsearch("http://go-nrao-nm.aoc.nrao.edu:9200", timeout=20)
 log_lock = Lock()
-index_prefixes = ["", "test", "aws"]
+index_prefixes = ["", "new", "final", "test", "aws"]
 
 def sanitize(s):
     s = s.replace("&", "&amp")
@@ -136,7 +136,7 @@ def get_api(query):
         if "prefix" in session.keys():
             prefix = session["prefix"]
         else:
-            prefix = ""
+            prefix = "new"
         query = request.full_path.split("/")[2:]
         query[0] = prefix + query[0]
         query[1] = prefix + query[1]
@@ -177,7 +177,7 @@ def add_candidate_tag(id):
     if "prefix" in session.keys():
         prefix = session["prefix"]
     else:
-        prefix = ""
+        prefix = "new"
     doc = es.get(index=prefix+"cands", doc_type=prefix+"cand", id=id, _source=["tags"])
     old_tags = doc["_source"]["tags"]
     tags = old_tags.split(",")
@@ -198,7 +198,7 @@ def remove_candidate_tag(id):
     if "prefix" in session.keys():
         prefix = session["prefix"]
     else:
-        prefix = ""
+        prefix = "new"
     doc = es.get(index=prefix+"cands", doc_type=prefix+"cand", id=id, _source=["tags"])
     old_tags = doc["_source"]["tags"]
     tags = old_tags.split(",")
@@ -215,7 +215,7 @@ def get_scan_info(id):
     if "prefix" in session.keys():
         prefix = session["prefix"]
     else:
-        prefix = ""
+        prefix = "new"
     record = es.get(index=prefix+"scans", doc_type=prefix+"scan", id=id)
     doc = record["_source"]
     scanId = doc["scanId"]
@@ -237,7 +237,7 @@ def get_preference_info(id):
     if "prefix" in session.keys():
         prefix = session["prefix"]
     else:
-        prefix = ""
+        prefix = "new"
     record = es.get(index=prefix+"preferences", doc_type=prefix+"preference", id=id)
     doc = record["_source"]
     dmarr = doc["dmarr"]
@@ -272,7 +272,7 @@ def get_mock_info(id):
         if "prefix" in session.keys():
             prefix = session["prefix"]
         else:
-            prefix = ""
+            prefix = "new"
         print("record = es.get(index={0}mocks, doc_type={0}mock, id={1})".format(prefix, id))
         record = es.get(index=prefix+"mocks", doc_type=prefix+"mock", id=id)
         doc = record["_source"]
@@ -311,7 +311,7 @@ def group_tag():
     if "prefix" in session.keys():
         prefix = session["prefix"]
     else:
-        prefix = ""
+        prefix = "new"
     resp = es.update_by_query(body=q, doc_type="cand", index=prefix+"cands")
     response_info = {"total": resp["total"], "updated": resp["updated"], "type": "success"}
     if resp["failures"] != []:
@@ -325,7 +325,7 @@ def group_tag_count():
     if "prefix" in session.keys():
         prefix = session["prefix"]
     else:
-        prefix = ""
+        prefix = "new"
     last_request = session.get("last_request")
     q = {"query": last_request}
     resp = es.search(body=q, doc_type=prefix+"cand", index=prefix+"cands")
