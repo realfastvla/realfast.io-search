@@ -195,9 +195,17 @@ def add_candidate_tag(id):
         else:
             tag_list.append(tag)
             new_tags = ",".join(tag_list)
+            if "tagcount" in doc["_source"]:
+                new_tagcount = doc["_source"]["tagcount"] + 1
+            else:
+                new_tagcount = 1
     else:
         new_tags = tag
-    resp = es.update(prefix+"cands", prefix+"cand", id, {"doc": {session["userid"]+"_tags": new_tags}})
+        if "tagcount" in doc["_source"]:
+            new_tagcount = doc["_source"]["tagcount"] + 1
+        else:
+            new_tagcount = 1
+    resp = es.update(prefix+"cands", prefix+"cand", id, {"doc": {session["userid"]+"_tags": new_tags, "tagcount": new_tagcount}})
     log("added tag %s" % tag, "candidate %s" % id)
     return json.dumps(resp)
 
@@ -230,7 +238,7 @@ def remove_candidate_tag(id):
     if new_tags != "":
         resp = es.update(prefix+"cands", prefix+"cand", id, {"doc": {session["userid"]+"_tags": new_tags}})
     else:
-        resp = es.update(prefix+"cands", prefix+"cand", id, {"script": 'ctx._source.remove("' + session["userid"]+"_tags" + '")'})
+        resp = es.update(prefix+"cands", prefix+"cand", id, {"script": 'ctx._source.remove("' + session["userid"]+"_tags" + '"); ctx._source.tagcount -= 1'})
     log("removed tag %s" % tag, "candidate %s" % id)
     return json.dumps(resp)
 
@@ -339,7 +347,8 @@ def group_tag():
     q = {
         "query": last_request,
         "script": {
-            "inline": "ctx._source." + session["userid"] + "_tags='" + new_tags + "'",
+            "inline": "if (ctx._source." + session["userid"] + "_tags == null) { ctx._source.tagcount += 1; } ctx._source." + session["userid"] + "_tags='" + new_tags + "'",
+#            "inline": "ctx._source." + session["userid"] + "_tags='" + new_tags + "'",
             "lang": "painless"
         }
     }
