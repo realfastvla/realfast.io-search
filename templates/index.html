@@ -51,16 +51,25 @@
 //        request_url = "http://www.aoc.nrao.edu/~claw/realfast/plots/cands_" + scan_id.toString() + ".html";
         request_url = "/api/get-cands-plot/" + scan_id.toString();
 	console.log(request_url);
-	$.get(request_url, function(resp) {
-                // resp contains the html to display
-                $("#cands-info").html(resp).dialog({
-                    width: 'auto',
-                    modal: true,
-                    beforeClose: function() {
+//	$.get(request_url, function(resp) {
+//               // resp contains the html to display
+//                console.log(resp);
+//                $("#cands-info").html(resp).dialog({
+//                    width: 'auto',
+//                   modal: true,
+//                    beforeClose: function() {
+//                        $(context).css("color", "black");
+//                    }
+//                });
+//        });
+        $("#cands-info iframe").attr("src", request_url);
+        $("#cands-info").dialog({
+                   width: 'auto',
+                   modal: true,
+                   beforeClose: function() {
                         $(context).css("color", "black");
                     }
                 });
-        });
 	$(context).css("color", "red");
     }
 
@@ -102,7 +111,7 @@
         // activate the search help
         url = "https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#_boolean_operators";
         resp = "<ul><li>Search examples:</li>";
-        resp += "<ul><li>tags:new AND canddm:>100</li>";
+        resp += "<ul><li>canddm:>100</li>";
 	resp += "<li>snr1:>10 AND NOT canddt:>0.02</li></ul>";
         resp += "<li>See also the <a href='" + url + "'>elasticsearch help</a>.</li>";
 	resp += "<li>If you see page stuck with 'SEARCHING' click the x to reset search.</li>";
@@ -324,15 +333,9 @@
     function change_prefix() {
         var prefix = $("#prefix-selection option:selected").html();
         console.log(prefix);
-        if (prefix == "Default") {
-            $.get("/clear-prefix",
-                  function() { $("[name=q]").keyup(); }
-            );
-        } else {
-            $.get("/set-prefix/" + prefix,
-                  function() { $("[name=q]").keyup(); }
-            );
-        }
+        $.get("/set-prefix/" + prefix,
+              function() { $("[name=q]").keyup(); }
+        );
     }
   </script>
 
@@ -432,17 +435,9 @@
             <select id="prefix-selection" onchange="change_prefix()">
               {% for prefix in index_prefixes %}
 		{% if session.prefix == prefix %}
-                  {% if prefix == "" %}
-                    <option selected="selected">Default</option>
-                  {% else %}
-                    <option selected="selected">{{prefix}}</option>
-                  {% endif %}
+                  <option selected="selected">{{prefix}}</option>
 		{% else %}
-                  {% if prefix == "" %}
-                    <option>Default</option>
-                  {% else %}
-                    <option>{{prefix}}</option>
-                  {% endif %}
+                  <option>{{prefix}}</option>
 		{% endif %}
 	      {% endfor %}
             </select>
@@ -458,7 +453,7 @@
 	{% endif %}
     </div>
     <div id="scan-info" title="Scan info"></div>
-    <div id="cands-info" title="Cands info"></div>
+    <div id="cands-info" title="Cands info"><iframe src=""></iframe></div>
     <div id="preference-info" title="Preference info"></div>
     <div id="mock-info" title="Mock info"></div>
     <div id="help-info" title="Help"></div>

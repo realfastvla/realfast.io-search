@@ -3,7 +3,7 @@ from flask_cors import CORS
 import requests
 import urllib
 import json
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, TransportError
 import pdb
 from datetime import datetime, timedelta
 from functools import update_wrapper
@@ -249,24 +249,27 @@ def get_scan_info(id):
         prefix = session["prefix"]
     else:
         prefix = "new"
-    resp = es.get(index=prefix+"scans", doc_type=prefix+"scan", id=id)
-    
-    if resp.status_code == 200:
-        doc = resp["_source"]
-        scanId = doc["scanId"]
-        scanIdLink = "http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22idgoeshere%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D".replace("idgoeshere", scanId)
-        scanNo = doc["scanNo"]
-        subscanNo = doc["subscanNo"]
-        startTime = doc["startTime"]
-        stopTime = doc["stopTime"]
-        ra_deg = doc["ra_deg"]
-        dec_deg = doc["dec_deg"]
-        source = doc["source"]
-        scan_intent = doc["scan_intent"]
-        datasource = doc["datasource"]
-        prefsname = doc["prefsname"]
-        return render_template("scan_info.html", scanIdLink=scanIdLink, scanId=scanId, scanNo=scanNo, subscanNo=subscanNo, startTime=startTime, stopTime=stopTime, ra_deg=ra_deg, dec_deg=dec_deg, source=source, scan_intent=scan_intent, datasource=datasource, prefsname=prefsname)
-    else:
+
+    try:
+        resp = es.get(index=prefix+"scans", doc_type=prefix+"scan", id=id)
+        if resp['found']:
+            doc = resp["_source"]
+            scanId = doc["scanId"]
+            scanIdLink = "http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22idgoeshere%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D".replace("idgoeshere", scanId)
+            scanNo = doc["scanNo"]
+            subscanNo = doc["subscanNo"]
+            startTime = doc["startTime"]
+            stopTime = doc["stopTime"]
+            ra_deg = doc["ra_deg"]
+            dec_deg = doc["dec_deg"]
+            source = doc["source"]
+            scan_intent = doc["scan_intent"]
+            datasource = doc["datasource"]
+            prefsname = doc["prefsname"]
+            return render_template("scan_info.html", scanIdLink=scanIdLink, scanId=scanId, scanNo=scanNo, subscanNo=subscanNo, startTime=startTime, stopTime=stopTime, ra_deg=ra_deg, dec_deg=dec_deg, source=source, scan_intent=scan_intent, datasource=datasource, prefsname=prefsname)
+        else:
+            return "No scan found for id {0}".format(id)
+    except TransportError:
         return "No scan found for id {0}".format(id)
 
 @app.route("/api/preference-info/<id>")
@@ -275,36 +278,39 @@ def get_preference_info(id):
         prefix = session["prefix"]
     else:
         prefix = "new"
-    resp = es.get(index=prefix+"preferences", doc_type=prefix+"preference", id=id)
 
-    if resp.status_code == 200:
-        doc = resp["_source"]
-        dmarr = doc["dmarr"]
-        dtarr = doc["dtarr"]
-        fftmode = doc["fftmode"]
-        flaglist = doc["flaglist"]
-        maxdm = doc["maxdm"]
-        maximmem = doc["maximmem"]
-        memory_limit = doc["memory_limit"]
-        npix_max = doc["npix_max"]
-        npixx = doc["npixx"]
-        npixy = doc["npixy"]
-        rfpipe_version = doc["rfpipe_version"]
-        savecands = doc["savecands"]
-        savenoise = doc["savenoise"]
-        searchtype = doc["searchtype"]
-        selectpol = doc["selectpol"]
-        sigma_image1 = doc["sigma_image1"]
-        sigma_image2 = doc["sigma_image2"]
-        sigma_plot = doc["sigma_plot"]
-        simulated_transient = doc["simulated_transient"]
-        timesub = doc["timesub"]
-        uvoversample = doc["uvoversample"]
-        uvres = doc["uvres"]
-        workdir = doc["workdir"]
-
-        return render_template("preference_info.html", prefsname=id, dmarr=dmarr, dtarr=dtarr, fftmode=fftmode, maxdm=maxdm, flaglist=flaglist, maximmem=maximmem, memory_limit=memory_limit, npix_max=npix_max, npixx=npixx, npixy=npixy, rfpipe_version=rfpipe_version, savecands=savecands, savenoise=savenoise, searchtype=searchtype, selectpol=selectpol, sigma_image1=sigma_image1, sigma_image2=sigma_image2, sigma_plot=sigma_plot, simulated_transient=simulated_transient, timesub=timesub, uvoversample=uvoversample, uvres=uvres, workdir=workdir)
-    else:
+    try:
+        resp = es.get(index=prefix+"preferences", doc_type=prefix+"preference", id=id)
+        if resp['found']:
+            doc = resp["_source"]
+            dmarr = doc["dmarr"]
+            dtarr = doc["dtarr"]
+            fftmode = doc["fftmode"]
+            flaglist = doc["flaglist"]
+            maxdm = doc["maxdm"]
+            maximmem = doc["maximmem"]
+            memory_limit = doc["memory_limit"]
+            npix_max = doc["npix_max"]
+            npixx = doc["npixx"]
+            npixy = doc["npixy"]
+            rfpipe_version = doc["rfpipe_version"]
+            savecands = doc["savecands"]
+            savenoise = doc["savenoise"]
+            searchtype = doc["searchtype"]
+            selectpol = doc["selectpol"]
+            sigma_image1 = doc["sigma_image1"]
+            sigma_image2 = doc["sigma_image2"]
+            sigma_plot = doc["sigma_plot"]
+            simulated_transient = doc["simulated_transient"]
+            timesub = doc["timesub"]
+            uvoversample = doc["uvoversample"]
+            uvres = doc["uvres"]
+            workdir = doc["workdir"]
+            
+            return render_template("preference_info.html", prefsname=id, dmarr=dmarr, dtarr=dtarr, fftmode=fftmode, maxdm=maxdm, flaglist=flaglist, maximmem=maximmem, memory_limit=memory_limit, npix_max=npix_max, npixx=npixx, npixy=npixy, rfpipe_version=rfpipe_version, savecands=savecands, savenoise=savenoise, searchtype=searchtype, selectpol=selectpol, sigma_image1=sigma_image1, sigma_image2=sigma_image2, sigma_plot=sigma_plot, simulated_transient=simulated_transient, timesub=timesub, uvoversample=uvoversample, uvres=uvres, workdir=workdir)
+        else:
+            return "No scan found for id {0}".format(id)
+    except TransportError:
         return "No preferences found for id {0}".format(id)
 
 @app.route("/api/mock-info/<id>")
@@ -313,32 +319,35 @@ def get_mock_info(id):
         prefix = session["prefix"]
     else:
         prefix = "new"
-    resp = es.get(index=prefix+"mocks", doc_type=prefix+"mock", id=id)
 
-    if resp.status_code == 200:
-        print("record = es.get(index={0}mocks, doc_type={0}mock, id={1})".format(prefix, id))
-        doc = resp["_source"]
-        scanId = doc["scanId"]
-        segment = doc["segment"]
-        integration = doc["integration"]
-        dm = doc["dm"]
-        dt = doc["dt"]
-        amp = doc["amp"]
-        l = doc["l"]
-        m = doc["m"]
+    try:
+        resp = es.get(index=prefix+"mocks", doc_type=prefix+"mock", id=id)
+        if resp['found']:
+            print("record = es.get(index={0}mocks, doc_type={0}mock, id={1})".format(prefix, id))
+            doc = resp["_source"]
+            scanId = doc["scanId"]
+            segment = doc["segment"]
+            integration = doc["integration"]
+            dm = doc["dm"]
+            dt = doc["dt"]
+            amp = doc["amp"]
+            l = doc["l"]
+            m = doc["m"]
         
-        return render_template("mock_info.html", scanId=scanId, segment=segment, integration=integration, dm=dm, dt=dt, amp=amp, l=l, m=m)
-    else:
+            return render_template("mock_info.html", scanId=scanId, segment=segment, integration=integration, dm=dm, dt=dt, amp=amp, l=l, m=m)
+        else:
+            return "No scan found for id {0}".format(id)
+    except TransportError:
         return "No mocks found for id {0}".format(id)
 
 @app.route("/api/get-cands-plot/<id>")
 def get_cands_plot(id):
-    resp = requests.get('http://www.aoc.nrao.edu/~claw/realfast/plots/cands_{0}.html'.format(id))
 
+    resp = requests.get('http://www.aoc.nrao.edu/~claw/realfast/plots/cands_{0}.html'.format(id))
     if resp.status_code == 200:
         return resp.text
     else:
-        return "No file found for id {0}".format(id)
+        return "No scan found for id {0}".format(id)
 
 @app.route("/api/group-tag")
 def group_tag():
