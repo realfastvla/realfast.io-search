@@ -121,7 +121,7 @@ function searchOptions(options) {
     if (options.search_sortby.length > 0) {
         thefacetview += '<select class="facetview_orderby" style="border-radius:5px; \
             -moz-border-radius:5px; -webkit-border-radius:5px; width:100px; background:#eee; margin:0 5px 21px 0;"> \
-            <option value="">order by ... relevance</option>';
+            <option value="">order by ... </option>';
 
         for (var each = 0; each < options.search_sortby.length; each++) {
             var obj = options.search_sortby[each];

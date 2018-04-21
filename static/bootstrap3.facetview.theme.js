@@ -126,7 +126,7 @@ function searchOptions(options) {
     var sortby = "";
     if (options.search_sortby.length > 0) {
         sortby = '<select class="facetview_orderby form-control"> \
-                <option value="">order by ... relevance</option>';
+                <option value="">order by ...</option>';
 
         for (var each = 0; each < options.search_sortby.length; each++) {
             var obj = options.search_sortby[each];
