@@ -51,20 +51,11 @@
 //        request_url = "http://www.aoc.nrao.edu/~claw/realfast/plots/cands_" + scan_id.toString() + ".html";
         request_url = "/api/get-cands-plot/" + scan_id.toString();
 	console.log(request_url);
-//	$.get(request_url, function(resp) {
-//               // resp contains the html to display
-//                console.log(resp);
-//                $("#cands-info").html(resp).dialog({
-//                    width: 'auto',
-//                   modal: true,
-//                    beforeClose: function() {
-//                        $(context).css("color", "black");
-//                    }
-//                });
-//        });
-        $("#cands-info iframe").attr("src", request_url);
+        $("#cands-info iframe").attr("height", 420).attr("width", 960).attr("src", request_url);
         $("#cands-info").dialog({
-                   width: 'auto',
+                   position: {my: "left top", at: "left top"},
+                   width: 1020,
+                   height: 480,
                    modal: true,
                    beforeClose: function() {
                         $(context).css("color", "black");
@@ -138,7 +129,7 @@
         htmlString += "<ul><li>(candmjd, canddm, canddt): "
         htmlString += record.candmjd.toString() + ", " + record.canddm.toString() + ", " + record.canddt.toString() + "</li>"
         htmlString += "<li>snr1: "
-        htmlString += record.snr1.toString()
+        htmlString += record.snr1.toFixed(2).toString()
         htmlString += "</li>"
 
         {% if session.logged_in %}
@@ -147,11 +138,8 @@
         htmlString += "<li class=\"clickable\" onclick=\"click_cands(event, this, '" + record.scanId + "')\">Show scan summary</li>"
 	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"
 	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%20AND%20segment%5C%5C%3A" + record.segment.toString() + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in segment</a></li></ul>"
-        {% endif %}
-	htmlString += "</ul>"
 
-        {% if session.logged_in %}
-        htmlString += "<div class=\"checks\">"
+        htmlString += "<li>Tags: <div class=\"checks\">"
         var possible_tags = {{ allowed_tags|tojson|safe }};
         if (!record.{{ session.userid }}_tags) {
             for (var i = 0; i < possible_tags.length; i++) {
@@ -167,8 +155,10 @@
                 }
             }
         }
-        htmlString += "</div>"
+        htmlString += "</div></li>"
         {% endif %}
+
+	htmlString += "</ul>"
 
         if (record.png_url != "") {
             htmlString += "<img src=\"" + record.png_url + "\">";
@@ -387,8 +377,6 @@
     .checks {
       width:500px;
       height:25px;
-      border:1px solid black;
-      float:left;
     }
 
     a:hover {
@@ -446,6 +434,7 @@
           {% if session.logged_in %}
             <li><a href="#tabs-2">Scans</a></li>
             <li><a href="/get-curr-log">Log</a></li>
+	    <span style="float: right">{{session.userid}} logged in</span>
           {% endif %}
         </ul>
         <div id="tabs-1">
