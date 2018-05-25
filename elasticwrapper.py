@@ -161,11 +161,14 @@ def get_api(query):
 #        new_query = {"bool": {"must": [{"match": old_query}, {"match": {"tags": "public"}}]}}  # "must" can take a list, so this is almost right
         query_obj["query"] = new_query
         query_string = urllib.parse.quote(json.dumps(query_obj))
-        resp = requests.get("http://go-nrao-nm.aoc.nrao.edu:9200/" + '/'.join(request.path.split("/")[2:]) + "?source=" + query_string)
+        path = '/'.join([pth for pth in request.path.split("/")[2:]])
+        path = path.replace('cands/cand', 'finalcands/finalcand')  # this returns 1 cand. why?**
+        fullpath = "http://go-nrao-nm.aoc.nrao.edu:9200/" + path + "?source=" + query_string
+        resp = requests.get(fullpath)
         print("*"*100)
-        print("http://go-nrao-nm.aoc.nrao.edu:9200/" + '/'.join(request.path.split("/")[2:]) + "?source=" + query_string)
+        print("fullpath:", fullpath)
 #        print(query_obj)
-#        print(resp.text)
+        print("resp.text", resp.text)
         print("*"*100)
         return resp.text
 

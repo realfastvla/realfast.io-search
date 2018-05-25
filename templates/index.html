@@ -479,7 +479,10 @@
     <div id="help-info" title="Help"></div>
     <div id="group-tag-dialog" title="Group tag">
         <h3>Apply what tags to last search result?</h3>
-        {% for tag in allowed_tags %}
+    
+
+
+    {% for tag in allowed_tags %}
         <input type="checkbox" id="group-tag-{{ tag }}" name="{{ tag }}"> {{ tag }} <br>
         {% endfor %}
         <button onclick="group_tag(1, this)">Next</button>
