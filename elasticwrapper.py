@@ -304,14 +304,13 @@ def get_preference_info(id):
             searchtype = doc["searchtype"]
             selectpol = doc["selectpol"]
             sigma_image1 = doc["sigma_image1"]
-            sigma_image2 = doc["sigma_image2"]
             simulated_transient = doc["simulated_transient"]
             timesub = doc["timesub"]
             uvoversample = doc["uvoversample"]
             uvres = doc["uvres"]
             workdir = doc["workdir"]
             
-            return render_template("preference_info.html", prefsname=id, dmarr=dmarr, dtarr=dtarr, fftmode=fftmode, maxdm=maxdm, flaglist=flaglist, maximmem=maximmem, memory_limit=memory_limit, npix_max=npix_max, npixx=npixx, npixy=npixy, rfpipe_version=rfpipe_version, savecands=savecands, savenoise=savenoise, searchtype=searchtype, selectpol=selectpol, sigma_image1=sigma_image1, sigma_image2=sigma_image2, simulated_transient=simulated_transient, timesub=timesub, uvoversample=uvoversample, uvres=uvres, workdir=workdir)
+            return render_template("preference_info.html", prefsname=id, dmarr=dmarr, dtarr=dtarr, fftmode=fftmode, maxdm=maxdm, flaglist=flaglist, maximmem=maximmem, memory_limit=memory_limit, npix_max=npix_max, npixx=npixx, npixy=npixy, rfpipe_version=rfpipe_version, savecands=savecands, savenoise=savenoise, searchtype=searchtype, selectpol=selectpol, sigma_image1=sigma_image1, simulated_transient=simulated_transient, timesub=timesub, uvoversample=uvoversample, uvres=uvres, workdir=workdir)
         else:
             return "No scan found for id {0}".format(id)
     except TransportError:
