@@ -131,6 +131,9 @@
         htmlString += "<li>snr1: "
         htmlString += record.snr1.toFixed(2).toString()
         htmlString += "</li>"
+        htmlString += "<li>clustersize: "
+        htmlString += record.clustersize.toFixed(2).toString()
+        htmlString += "</li>"
 
         {% if session.logged_in %}
 	htmlString += "<li>More info:</li>"
@@ -443,7 +446,7 @@
 	    <button onclick="group_tag(0, this)">Group tag</button>
 	  {% endif %}
 	  <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22tags%5C%5C%3Anew%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show new</button></a>
-	  <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22*png*%20%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show plots</button></a>
+	  <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22png_url%5C%5C%3A*png*%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show plots</button></a>
           {% if session.logged_in %}
           <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22_exists_%5C%5C%3A{{ session.userid }}_tags%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show my tagged</button></a>
           <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22NOT%20_exists_%5C%5C%3A{{ session.userid }}_tags%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show my untagged</button></a>
@@ -473,7 +476,7 @@
 	{% endif %}
     </div>
     <div id="scan-info" title="Scan info"></div>
-    <div id="cands-info" title="Cands info"><iframe src=""></iframe></div>
+    <div id="cands-info" title="Cands info"><iframe src="" height="0" width="0"></iframe></div>
     <div id="preference-info" title="Preference info"></div>
     <div id="mock-info" title="Mock info"></div>
     <div id="help-info" title="Help"></div>
