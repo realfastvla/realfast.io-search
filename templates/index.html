@@ -233,6 +233,7 @@
                     { "pre": " ", "field": "stopTime", "post": "</li>"},
                     { "pre": "<li>(RA, Dec): ", "field": "ra_deg", "post": "," },
                     { "pre": " ", "field": "dec_deg", "post": "</li>" },
+                    { "pre": "<li>Procssing status: ", "field": "status", "post": "</li>" },
 		    { "pre": "<li>More info: <ul><li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22", "field": "scanId", "post": "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"},
                     { "pre": "<li class=\"clickable\" onclick=\"click_cands(event, this, '", "field": "scanId", "post": "')\">Show scan summary</li>"},
                     { "pre": "<li class=\"clickable\" onclick=\"click_preference(event, this, '", "field": "prefsname", "post": "')\">Show preferences</li>"},
