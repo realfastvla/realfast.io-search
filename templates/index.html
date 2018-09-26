@@ -110,7 +110,7 @@
         resp += "<li>Use pulldown to change sort field to snrtot or candmjd.</li></ul></p>";
         resp += "<p>Group tagging uses cookies to apply single tag to all candidates in last query.</p>";
         resp += "<p>Candidate index fields: tags, scanId, datasetId, prefsname, snr1, snrtot, clustersize, candmjd, canddm (pc/cm3), canddt (s), scan, segment, integration, dmind, dtind, and (sometimes) spec/im + std/skew/kurtosis</p>";
-        resp += "<p>Scan index fields: scanId, projid, prefsname, ra_deg, dec_deg, source, startTime, stopTime, datasource, scan_intent, scanNo, datasetId.</p>";
+        resp += "<p>Scan index fields: scanId, prefsname, ra_deg, dec_deg, source, startTime, stopTime, datasource, scan_intent, scanNo, datasetId.</p>";
         // resp contains the html to display
         $("#help-info").html(resp).dialog({
             width: '50%',
@@ -218,7 +218,7 @@
                 search_button: true,
                 sharesave_link: true,
                 debug: false,
-                stored_fields: ["scanId", "datasetId", "scan_intent", "datasource", "startTime", "stopTime", "ra_deg", "dec_deg", "scanNo", "subscanNo", "prefsname", "source"],
+                stored_fields: ["scanId", "datasetId", "scan_intent", "datasource", "startTime", "stopTime", "ra_deg", "dec_deg", "scanNo", "subscanNo", "prefsname", "source", "inttime", "band", "nsegment", "pending", "finished", "errors"],
                 render_results_metadata: pageSlider,
                 "result_display" :
                 [
@@ -229,15 +229,22 @@
                     { "pre": " ", "field": "datasource", "post": "</li>"},
                     { "pre": "<li>(scan, subscan): ", "field": "scanNo", "post": "," },
                     { "pre": " ", "field": "subscanNo", "post": "</li>"},
+                    { "pre": "<li>(band, inttime): ", "field": "band", "post": "," },
+                    { "pre": " ", "field": "inttime", "post": "</li>"},
                     { "pre": "<li>(startTime, stopTime): ", "field": "startTime", "post": "," },
                     { "pre": " ", "field": "stopTime", "post": "</li>"},
                     { "pre": "<li>(RA, Dec): ", "field": "ra_deg", "post": "," },
                     { "pre": " ", "field": "dec_deg", "post": "</li>" },
-                    { "pre": "<li>Procssing status: ", "field": "status", "post": "</li>" },
+		    { "pre": "<li>(searchtype, fftmode): ", "field": "searchtype", "post": ","},
+                    { "pre": " ", "field": "fftmode", "post": "</li>"},
+                    { "pre": "<li>nsegment/pending/finished/errors: ", "field": "nsegment", "post": "/" },
+                    { "pre": "", "field": "pending", "post": "/" },
+                    { "pre": "", "field": "finished", "post": "/" },
+                    { "pre": "", "field": "errors", "post": "</li>" },
 		    { "pre": "<li>More info: <ul><li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22", "field": "scanId", "post": "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"},
                     { "pre": "<li class=\"clickable\" onclick=\"click_cands(event, this, '", "field": "scanId", "post": "')\">Show scan summary</li>"},
                     { "pre": "<li class=\"clickable\" onclick=\"click_preference(event, this, '", "field": "prefsname", "post": "')\">Show preferences</li>"},
-                    { "pre": "<li class=\"clickable\" onclick=\"click_mock(event, this, '", "field": "scanId", "post": "')\">Show mock transients</li></ul></ul>"},
+                    { "pre": "<li class=\"clickable\" onclick=\"click_mock(event, this, '", "field": "scanId", "post": "')\">Show mock transient</li></ul></ul>"},
                  ],
               ],
               // selected_filters_in_facet: true,

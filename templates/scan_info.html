@@ -1,9 +1,10 @@
 {{scanId}}
 <ul>
   <li>(source, intent, datasource): {{source}}, {{scan_intent}}, {{datasource}}</li>
-  <li>(scan, subscan): {{scanNo}}, {{subscanNo}}
+  <li>(scan, subscan): {{scanNo}}, {{subscanNo}}</li>
+  <li>(searchtype, fftmode): {{searchtype}}, {{fftmode}}</li>
   <li>(startTime, stopTime): {{startTime}}, {{stopTime}}</li>
   <li>(RA, Dec): {{ra_deg}}, {{dec_deg}}</li>
-  <li>preferences: {{prefsname}}</li>
+  <li class="clickable" onclick="click_preference(event, this, '{{prefsname}}')">Show preferences {{prefsname}}</li>
   <li><a href={{scanIdLink}}>Show all candidates for ScanId</a></li>
 </ul>

@@ -270,7 +270,9 @@ def get_scan_info(id):
             scan_intent = doc["scan_intent"]
             datasource = doc["datasource"]
             prefsname = doc["prefsname"]
-            return render_template("scan_info.html", scanIdLink=scanIdLink, scanId=scanId, scanNo=scanNo, subscanNo=subscanNo, startTime=startTime, stopTime=stopTime, ra_deg=ra_deg, dec_deg=dec_deg, source=source, scan_intent=scan_intent, datasource=datasource, prefsname=prefsname)
+            searchtype = doc["searchtype"] if "searchtype" in doc else None
+            fftmode = doc["fftmode"] if "fftmode" in doc else None
+            return render_template("scan_info.html", scanIdLink=scanIdLink, scanId=scanId, scanNo=scanNo, subscanNo=subscanNo, startTime=startTime, stopTime=stopTime, ra_deg=ra_deg, dec_deg=dec_deg, source=source, scan_intent=scan_intent, datasource=datasource, prefsname=prefsname, searchtype=searchtype, fftmode=fftmode)
         else:
             return "No scan found for id {0}".format(id)
     except TransportError:
