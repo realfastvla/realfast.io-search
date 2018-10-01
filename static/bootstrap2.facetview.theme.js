@@ -912,7 +912,7 @@ function renderResultRecord(options, record) {
             }
 
             // if we have a value to display, sort out the pre-and post- stuff and build the new line
-            if (thevalue && thevalue.toString().length) {
+//            if (thevalue && thevalue.toString().length) {
                 if (display[lineitem][object]['pre']) {
                     line += display[lineitem][object]['pre']
                 }
@@ -923,7 +923,7 @@ function renderResultRecord(options, record) {
                 } else if(!display[lineitem][object]['notrailingspace']) {
                     line += ' ';
                 }
-            }
+//            }
         }
 
         // if we have a line, append it to the full lines and add a line break
