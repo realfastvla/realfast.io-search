@@ -15,7 +15,8 @@ import os
 app = Flask(__name__)
 CORS(app)
 app.secret_key = b'r8\x9f\xbda\xc8q]]\x9e\xbc\x82y\x08h\x95\x8b\xc9\xcb\xa8\xd8\x90\x93\x18'
-es = Elasticsearch("http://go-nrao-nm.aoc.nrao.edu:9200", timeout=20)
+#es = Elasticsearch("http://go-nrao-nm.aoc.nrao.edu:9200", timeout=20)
+es = Elasticsearch("http://realfast.aoc.nrao.edu:9200", timeout=20)
 log_lock = Lock()
 index_prefixes = ["new", "final", "test", "aws"]
 allowed_tags = ["rfi", "bad", "noise", "interesting", "astrophysical", "mock"]
@@ -145,7 +146,8 @@ def get_api(query):
         print(query)
         # get rid of backslashes in URL (but not before "), it seems facetview doesn't account for this
         query = query.replace("%5C%5C", "")
-        resp = requests.get("http://go-nrao-nm.aoc.nrao.edu:9200/" + query)
+#        resp = requests.get("http://go-nrao-nm.aoc.nrao.edu:9200/" + query)
+        resp = requests.get("http://realfast.aoc.nrao.edu:9200/" + query)
         resp = make_response(resp.text)
         resp.set_cookie("last_request", str(session["last_request"]))
         return resp
@@ -163,7 +165,8 @@ def get_api(query):
         query_string = urllib.parse.quote(json.dumps(query_obj))
         path = '/'.join([pth for pth in request.path.split("/")[2:]])
         path = path.replace('cands/cand', 'finalcands/finalcand')  # this returns 1 cand. why?**
-        fullpath = "http://go-nrao-nm.aoc.nrao.edu:9200/" + path + "?source=" + query_string
+#        fullpath = "http://go-nrao-nm.aoc.nrao.edu:9200/" + path + "?source=" + query_string
+        fullpath = "http://realfast.aoc.nrao.edu:9200/" + path + "?source=" + query_string
         resp = requests.get(fullpath)
         print("*"*100)
         print("fullpath:", fullpath)
