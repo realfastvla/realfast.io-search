@@ -48,7 +48,6 @@
 
     function click_cands(event, context, scan_id) {
         // activate the scan popup
-//        request_url = "http://www.aoc.nrao.edu/~claw/realfast/plots/cands_" + scan_id.toString() + ".html";
         request_url = "/api/get-cands-plot/" + scan_id.toString();
 	console.log(request_url);
         $("#cands-info iframe").attr("height", 420).attr("width", 960).attr("src", request_url);
