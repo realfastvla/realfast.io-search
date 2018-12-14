@@ -131,7 +131,7 @@ def get_api(query):
             session["last_request"]["query_string"]["query"] = session["last_request"]["query_string"]["query"].replace("\\)", ")")
             session["request_string"] = session["last_request"]["query_string"]["query"]
         except KeyError:
-            print("KeyError!")
+            print("KeyError for session last request: {0}".format(session["last_request"]))
 
     if session.get("logged_in"):
         if "prefix" in session.keys():
@@ -255,7 +255,7 @@ def get_scan_info(id):
         prefix = "new"
 
     try:
-        resp = es.get(index=prefix+"scans", doc_type=prefix+"scan", id=id)
+        resp = es.get(index=prefix+"scans", doc_type=prefix+"scan", id=id, request_timeout=1)
         if resp['found']:
             doc = resp["_source"]
             scanId = doc["scanId"]
@@ -287,7 +287,7 @@ def get_preference_info(id):
         prefix = "new"
 
     try:
-        resp = es.get(index=prefix+"preferences", doc_type=prefix+"preference", id=id)
+        resp = es.get(index=prefix+"preferences", doc_type=prefix+"preference", id=id, request_timeout=1)
         if resp['found']:
             doc = resp["_source"]
             dmarr = doc["dmarr"]
@@ -326,7 +326,7 @@ def get_mock_info(id):
         prefix = "new"
 
     try:
-        resp = es.get(index=prefix+"mocks", doc_type=prefix+"mock", id=id)
+        resp = es.get(index=prefix+"mocks", doc_type=prefix+"mock", id=id, request_timeout=1)
         if resp['found']:
             print("record = es.get(index={0}mocks, doc_type={0}mock, id={1})".format(prefix, id))
             doc = resp["_source"]
@@ -348,7 +348,12 @@ def get_mock_info(id):
 @app.route("/api/get-cands-plot/<id>")
 def get_cands_plot(id):
 
-    resp = requests.get('http://realfast.nrao.edu/plots/cands_{0}.html'.format(id))
+    if "prefix" in session.keys():
+        prefix = session["prefix"]
+    else:
+        prefix = "new"
+
+    resp = requests.get('http://realfast.nrao.edu/plots/{0}/cands_{1}.html'.format(prefix, id))
     if resp.status_code == 200:
         return resp.text
     else:
