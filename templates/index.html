@@ -46,6 +46,23 @@
 	$(context).css("color", "red");
     }
 
+    function click_cand(event, context, cand_id) {
+        // activate the scan popup
+        request_url = "/api/query-coord/" + cand_id;
+	console.log(request_url);
+	$.get(request_url, function(resp) {
+                // resp contains the html to display
+                $("#query-coord").html(resp).dialog({
+                    width: 'auto',
+                    modal: true,
+                    beforeClose: function() {
+                        $(context).css("color", "black");
+                    }
+                });
+        });
+	$(context).css("color", "red");
+    }
+
     function click_cands(event, context, scan_id) {
         // activate the scan popup
         request_url = "/api/get-cands-plot/" + scan_id.toString();
@@ -124,7 +141,8 @@
     function renderResult(options, record) {
 	var id = record.scanId.toString() + "_seg" + record.segment.toString() + "-i" + record.integration.toString() + "-dm" + record.dmind.toString() + "-dt" + record.dtind.toString();
         htmlString = "<div>candId: "
-        htmlString += record.scanId.toString() + "_seg" + record.segment.toString() + "-i" + record.integration.toString() + "-dm" + record.dmind.toString() + "-dt" + record.dtind.toString()
+        candId = record.scanId.toString() + "_seg" + record.segment.toString() + "-i" + record.integration.toString() + "-dm" + record.dmind.toString() + "-dt" + record.dtind.toString()
+        htmlString += candId
         htmlString += "<ul><li>(candmjd, canddm, canddt): "
         htmlString += record.candmjd.toString() + ", " + record.canddm.toString() + ", " + record.canddt.toString() + "</li>"
         htmlString += "<li>snrtot: "
@@ -136,8 +154,9 @@
 
         {% if session.logged_in %}
 	htmlString += "<li>More info:</li>"
-        htmlString += "<ul><li class=\"clickable\" onclick=\"click_scan(event, this, '" + record.scanId + "')\">Show scan info</li>"
-        htmlString += "<li class=\"clickable\" onclick=\"click_cands(event, this, '" + record.scanId + "')\">Show scan summary</li>"
+        htmlString += "<ul><li class=\"clickable\" onclick=\"click_cands(event, this, '" + record.scanId + "')\">Show scan summary</li>"
+        htmlString += "<li class=\"clickable\" onclick=\"click_cand(event, this, '" + candId + "')\">Query coord</li>"
+        htmlString += "<li class=\"clickable\" onclick=\"click_scan(event, this, '" + record.scanId + "')\">Show scan info</li>"
 	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"
 	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%20AND%20segment%5C%5C%3A" + record.segment.toString() + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in segment</a></li></ul>"
 
@@ -479,6 +498,7 @@
 	{% endif %}
     </div>
     <div id="scan-info" title="Scan info"></div>
+    <div id="query-coord" title="Query coord"></div>
     <div id="cands-info" title="Cands info"><iframe src="" height="0" width="0"></iframe></div>
     <div id="preference-info" title="Preference info"></div>
     <div id="mock-info" title="Mock info"></div>

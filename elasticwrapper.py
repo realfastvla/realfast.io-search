@@ -10,7 +10,7 @@ from functools import update_wrapper
 import markdown
 from threading import Lock
 import os
-
+from math import degrees
 
 app = Flask(__name__)
 CORS(app)
@@ -277,6 +277,37 @@ def get_scan_info(id):
             return "No scan found for id {0}".format(id)
     except TransportError:
         return "No scan found for id {0}".format(id)
+
+
+@app.route("/api/query-coord/<id>")
+def get_coord_info(id):
+    if "prefix" in session.keys():
+        prefix = session["prefix"]
+    else:
+        prefix = "new"
+
+    try:
+        resp = es.get(index=prefix+"cands", doc_type=prefix+"cand", id=id, request_timeout=1)
+        if resp['found']:
+            doc = resp["_source"]
+            l1 = doc["l1"]
+            m1 = doc["m1"]
+            scanId = doc["scanId"]
+
+            resp = es.get(index=prefix+"scans", doc_type=prefix+"scan", id=scanId, request_timeout=1)
+            if resp['found']:
+                doc = resp["_source"]
+                ra0= doc["ra_deg"]
+                dec0 = doc["dec_deg"]
+                ra = ra0 + degrees(l1)
+                dec = dec0 + degrees(m1)
+                return "({0}, {1})".format(ra, dec)
+            else:
+                return "No scanId {0} found for candId {1}".format(scanId, id)
+        else:
+            return "No candId {1} found".format(scanId, id)            
+    except TransportError:
+        return "No preferences found for id {0}".format(id)
 
 
 @app.route("/api/preference-info/<id>")
