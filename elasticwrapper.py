@@ -15,7 +15,7 @@ from math import degrees
 app = Flask(__name__)
 CORS(app)
 app.secret_key = b'r8\x9f\xbda\xc8q]]\x9e\xbc\x82y\x08h\x95\x8b\xc9\xcb\xa8\xd8\x90\x93\x18'
-es = Elasticsearch("http://realfast.nrao.edu:9200", timeout=20)
+es = Elasticsearch("http://realfast.nrao.edu:9200", timeout=20, retry_on_timeout=True)
 log_lock = Lock()
 index_prefixes = ["new", "final", "test", "aws"]
 allowed_tags = ["rfi", "bad", "noise", "interesting", "astrophysical", "mock"]
@@ -321,6 +321,7 @@ def get_preference_info(id):
         resp = es.get(index=prefix+"preferences", doc_type=prefix+"preference", id=id, request_timeout=1)
         if resp['found']:
             doc = resp["_source"]
+            chans = doc["chans"]
             dmarr = doc["dmarr"]
             dtarr = doc["dtarr"]
             fftmode = doc["fftmode"]
@@ -337,13 +338,14 @@ def get_preference_info(id):
             searchtype = doc["searchtype"]
             selectpol = doc["selectpol"]
             sigma_image1 = doc["sigma_image1"]
+            sigma_kalman = doc["sigma_kalman"]
             simulated_transient = doc["simulated_transient"]
             timesub = doc["timesub"]
             uvoversample = doc["uvoversample"]
             uvres = doc["uvres"]
             workdir = doc["workdir"]
             
-            return render_template("preference_info.html", prefsname=id, dmarr=dmarr, dtarr=dtarr, fftmode=fftmode, maxdm=maxdm, flaglist=flaglist, maximmem=maximmem, memory_limit=memory_limit, npix_max=npix_max, npixx=npixx, npixy=npixy, rfpipe_version=rfpipe_version, savecands=savecands, savenoise=savenoise, searchtype=searchtype, selectpol=selectpol, sigma_image1=sigma_image1, timesub=timesub, uvoversample=uvoversample, uvres=uvres, workdir=workdir)
+            return render_template("preference_info.html", prefsname=id, chans=chans, dmarr=dmarr, dtarr=dtarr, fftmode=fftmode, maxdm=maxdm, flaglist=flaglist, maximmem=maximmem, memory_limit=memory_limit, npix_max=npix_max, npixx=npixx, npixy=npixy, rfpipe_version=rfpipe_version, savecands=savecands, savenoise=savenoise, searchtype=searchtype, selectpol=selectpol, sigma_image1=sigma_image1, sigma_kalman=sigma_kalman, timesub=timesub, uvoversample=uvoversample, uvres=uvres, workdir=workdir)
         else:
             return "No scan found for id {0}".format(id)
     except TransportError:
