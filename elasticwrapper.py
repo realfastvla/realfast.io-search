@@ -322,6 +322,7 @@ def get_preference_info(id):
         if resp['found']:
             doc = resp["_source"]
             chans = doc["chans"]
+            clustercands = doc["clustercands"]
             dmarr = doc["dmarr"]
             dtarr = doc["dtarr"]
             fftmode = doc["fftmode"]
@@ -345,7 +346,7 @@ def get_preference_info(id):
             uvres = doc["uvres"]
             workdir = doc["workdir"]
             
-            return render_template("preference_info.html", prefsname=id, chans=chans, dmarr=dmarr, dtarr=dtarr, fftmode=fftmode, maxdm=maxdm, flaglist=flaglist, maximmem=maximmem, memory_limit=memory_limit, npix_max=npix_max, npixx=npixx, npixy=npixy, rfpipe_version=rfpipe_version, savecands=savecands, savenoise=savenoise, searchtype=searchtype, selectpol=selectpol, sigma_image1=sigma_image1, sigma_kalman=sigma_kalman, timesub=timesub, uvoversample=uvoversample, uvres=uvres, workdir=workdir)
+            return render_template("preference_info.html", prefsname=id, chans=chans, clustercands=clustercands, dmarr=dmarr, dtarr=dtarr, fftmode=fftmode, maxdm=maxdm, flaglist=flaglist, maximmem=maximmem, memory_limit=memory_limit, npix_max=npix_max, npixx=npixx, npixy=npixy, rfpipe_version=rfpipe_version, savecands=savecands, savenoise=savenoise, searchtype=searchtype, selectpol=selectpol, sigma_image1=sigma_image1, sigma_kalman=sigma_kalman, timesub=timesub, uvoversample=uvoversample, uvres=uvres, workdir=workdir)
         else:
             return "No scan found for id {0}".format(id)
     except TransportError:

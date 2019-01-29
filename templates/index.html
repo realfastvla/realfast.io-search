@@ -125,7 +125,7 @@
 	resp += "<li>Click arrow to change sort order.</li>";
         resp += "<li>Use pulldown to change sort field to snrtot or candmjd.</li></ul></p>";
         resp += "<p>Group tagging uses cookies to apply single tag to all candidates in last query.</p>";
-        resp += "<p>Candidate index fields: tags, scanId, datasetId, prefsname, snr1, snrtot, clustersize, candmjd, canddm (pc/cm3), canddt (s), scan, segment, integration, dmind, dtind, and (sometimes) spec/im + std/skew/kurtosis</p>";
+        resp += "<p>Candidate index fields: _id, scanId, datasetId, prefsname, snr1, snrtot, clustersize, candmjd, canddm (pc/cm3), canddt (s), scan, segment, integration, dmind, dtind, and (sometimes) spec/im + std/skew/kurtosis</p>";
         resp += "<p>Scan index fields: scanId, prefsname, ra_deg, dec_deg, source, startTime, stopTime, datasource, scan_intent, scanNo, datasetId.</p>";
         // resp contains the html to display
         $("#help-info").html(resp).dialog({
