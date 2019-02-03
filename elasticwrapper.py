@@ -264,15 +264,15 @@ def get_scan_info(id):
             subscanNo = doc["subscanNo"]
             startTime = doc["startTime"]
             stopTime = doc["stopTime"]
-            ra_deg = doc["ra_deg"]
-            dec_deg = doc["dec_deg"]
+            ra = doc["ra"]
+            dec = doc["dec"]
             source = doc["source"]
             scan_intent = doc["scan_intent"]
             datasource = doc["datasource"]
             prefsname = doc["prefsname"]
             searchtype = doc["searchtype"] if "searchtype" in doc else None
             fftmode = doc["fftmode"] if "fftmode" in doc else None
-            return render_template("scan_info.html", scanIdLink=scanIdLink, scanId=scanId, scanNo=scanNo, subscanNo=subscanNo, startTime=startTime, stopTime=stopTime, ra_deg=ra_deg, dec_deg=dec_deg, source=source, scan_intent=scan_intent, datasource=datasource, prefsname=prefsname, searchtype=searchtype, fftmode=fftmode)
+            return render_template("scan_info.html", scanIdLink=scanIdLink, scanId=scanId, scanNo=scanNo, subscanNo=subscanNo, startTime=startTime, stopTime=stopTime, ra=ra, dec=dec, source=source, scan_intent=scan_intent, datasource=datasource, prefsname=prefsname, searchtype=searchtype, fftmode=fftmode)
         else:
             return "No scan found for id {0}".format(id)
     except TransportError:
@@ -290,20 +290,9 @@ def get_coord_info(id):
         resp = es.get(index=prefix+"cands", doc_type=prefix+"cand", id=id, request_timeout=1)
         if resp['found']:
             doc = resp["_source"]
-            l1 = doc["l1"]
-            m1 = doc["m1"]
-            scanId = doc["scanId"]
-
-            resp = es.get(index=prefix+"scans", doc_type=prefix+"scan", id=scanId, request_timeout=1)
-            if resp['found']:
-                doc = resp["_source"]
-                ra0= doc["ra_deg"]
-                dec0 = doc["dec_deg"]
-                ra = ra0 + degrees(l1)
-                dec = dec0 + degrees(m1)
-                return "({0}, {1})".format(ra, dec)
-            else:
-                return "No scanId {0} found for candId {1}".format(scanId, id)
+            ra0 = doc["ra"]
+            dec0 = doc["dec"]
+            return "({0}, {1})".format(ra, dec)
         else:
             return "No candId {1} found".format(scanId, id)            
     except TransportError:
