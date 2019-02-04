@@ -125,7 +125,7 @@
 	resp += "<li>Click arrow to change sort order.</li>";
         resp += "<li>Use pulldown to change sort field to snrtot or candmjd.</li></ul></p>";
         resp += "<p>Group tagging uses cookies to apply single tag to all candidates in last query.</p>";
-        resp += "<p>Candidate index fields: _id, scanId, datasetId, prefsname, snr1, snrtot, clustersize, candmjd, canddm (pc/cm3), canddt (s), scan, segment, integration, dmind, dtind, and (sometimes) spec/im + std/skew/kurtosis</p>";
+        resp += "<p>Candidate index fields: candId, scanId, datasetId, prefsname, snr1, snrtot, clustersize, candmjd, canddm (pc/cm3), canddt (s), scan, segment, integration, dmind, dtind, and (sometimes) spec/im + std/skew/kurtosis</p>";
         resp += "<p>Scan index fields: scanId, prefsname, ra_deg, dec_deg, source, startTime, stopTime, datasource, scan_intent, scanNo, datasetId.</p>";
         // resp contains the html to display
         $("#help-info").html(resp).dialog({
@@ -143,20 +143,22 @@
         htmlString = "<div>candId: "
         candId = record.scanId.toString() + "_seg" + record.segment.toString() + "-i" + record.integration.toString() + "-dm" + record.dmind.toString() + "-dt" + record.dtind.toString()
         htmlString += candId
-        htmlString += "<ul><li>(candmjd, canddm, canddt): "
-        htmlString += record.candmjd.toString() + ", " + record.canddm.toString() + ", " + record.canddt.toString() + "</li>"
+        htmlString += "<ul><li><ul class=\"columns\"><li>candmjd: "
+        htmlString += record.candmjd.toString() + "</li>"
+        htmlString += "<li>(canddm, canddt): "
+        htmlString += record.canddm.toString() + ", " + record.canddt.toString() + "</li>"
         htmlString += "<li>snrtot: "
-        htmlString += record.snrtot.toFixed(2).toString()
-        htmlString += "</li>"
+        htmlString += record.snrtot.toFixed(2).toString() + "</li>"
         htmlString += "<li>clustersize: "
         htmlString += record.clustersize.toString()
-        htmlString += "</li>"
+        htmlString += "</li></li></ul>"
 
         {% if session.logged_in %}
 	htmlString += "<li>More info:</li>"
-        htmlString += "<ul><li class=\"clickable\" onclick=\"click_cands(event, this, '" + record.scanId + "')\">Show scan summary</li>"
+        htmlString += "<ul class=\"columns\"><li class=\"clickable\" onclick=\"click_cands(event, this, '" + record.scanId + "')\">Show scan summary</li>"
         htmlString += "<li class=\"clickable\" onclick=\"click_cand(event, this, '" + candId + "')\">Query coord</li>"
         htmlString += "<li class=\"clickable\" onclick=\"click_scan(event, this, '" + record.scanId + "')\">Show scan info</li>"
+        htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22ra%5C%5C%3A%5C%5C%3E" + record.ra.toString() + "%20AND%20ra%5C%5C%3A%5C%5C%3E" + record.ra.toString() + "%20AND%20dec%5C%5C%3A%5C%5C%3E" + record.dec.toString() + "%20AND%20dec%5C%5C%3A%5C%5C%3C" + record.dec.toString() + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search within 10arcsec</a></li>"
 	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"
 	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%20AND%20segment%5C%5C%3A" + record.segment.toString() + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in segment</a></li></ul>"
 

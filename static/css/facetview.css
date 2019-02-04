@@ -74,3 +74,7 @@
     text-decoration:none;
     margin:0 5px 0 5px;
 }
+
+ul.columns  {
+   columns: 2;
+ }
