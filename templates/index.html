@@ -143,7 +143,7 @@
         htmlString = "<div>candId: "
         candId = record.scanId.toString() + "_seg" + record.segment.toString() + "-i" + record.integration.toString() + "-dm" + record.dmind.toString() + "-dt" + record.dtind.toString()
         htmlString += candId
-        htmlString += "<ul><li><ul class=\"columns\"><li>candmjd: "
+        htmlString += "<ul class=\"columns\"><li>candmjd: "
         htmlString += record.candmjd.toString() + "</li>"
         htmlString += "<li>(canddm, canddt): "
         htmlString += record.canddm.toString() + ", " + record.canddt.toString() + "</li>"
@@ -154,15 +154,21 @@
         htmlString += "</li></li></ul>"
 
         {% if session.logged_in %}
-	htmlString += "<li>More info:</li>"
+        var ra = record.ra.valueOf()
+        var dec = record.dec.valueOf()
+        var ra0 = ra - 0.002778
+        var ra1 = ra + 0.002778
+        var dec0 = dec - 0.002778
+        var dec1 = dec + 0.002778
+	htmlString += "More info:"
         htmlString += "<ul class=\"columns\"><li class=\"clickable\" onclick=\"click_cands(event, this, '" + record.scanId + "')\">Show scan summary</li>"
         htmlString += "<li class=\"clickable\" onclick=\"click_cand(event, this, '" + candId + "')\">Query coord</li>"
         htmlString += "<li class=\"clickable\" onclick=\"click_scan(event, this, '" + record.scanId + "')\">Show scan info</li>"
-        htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22ra%5C%5C%3A%5C%5C%3E" + record.ra.toString() + "%20AND%20ra%5C%5C%3A%5C%5C%3E" + record.ra.toString() + "%20AND%20dec%5C%5C%3A%5C%5C%3E" + record.dec.toString() + "%20AND%20dec%5C%5C%3A%5C%5C%3C" + record.dec.toString() + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search within 10arcsec</a></li>"
+        htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22ra%5C%5C%3A%5C%5C%3E" + ra0 + "%20AND%20ra%5C%5C%3A%5C%5C%3C" + ra1 + "%20AND%20dec%5C%5C%3A%5C%5C%3E" + dec0 + "%20AND%20dec%5C%5C%3A%5C%5C%3C" + dec1 + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search within 10arcsec</a></li>"
 	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"
 	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%20AND%20segment%5C%5C%3A" + record.segment.toString() + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in segment</a></li></ul>"
 
-        htmlString += "<li>Tags: <div class=\"checks\">"
+        htmlString += "Tags: <div class=\"checks\">"
         var possible_tags = {{ allowed_tags|tojson|safe }};
         if (!record.{{ session.userid }}_tags) {
             for (var i = 0; i < possible_tags.length; i++) {
@@ -178,10 +184,8 @@
                 }
             }
         }
-        htmlString += "</div></li>"
+        htmlString += "</div>"
         {% endif %}
-
-	htmlString += "</ul>"
 
         if (record.png_url != "") {
             htmlString += "<img src=\"" + record.png_url + "\">";

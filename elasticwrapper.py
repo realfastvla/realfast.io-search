@@ -290,8 +290,8 @@ def get_coord_info(id):
         resp = es.get(index=prefix+"cands", doc_type=prefix+"cand", id=id, request_timeout=1)
         if resp['found']:
             doc = resp["_source"]
-            ra0 = doc["ra"]
-            dec0 = doc["dec"]
+            ra = doc["ra"]
+            dec = doc["dec"]
             return "({0}, {1})".format(ra, dec)
         else:
             return "No candId {1} found".format(scanId, id)            
