@@ -279,7 +279,7 @@ def get_scan_info(id):
         return "No scan found for id {0}".format(id)
 
 
-@app.route("/api/query-coord/<id>")
+@app.route("/api/query-cand/<id>")
 def get_coord_info(id):
     if "prefix" in session.keys():
         prefix = session["prefix"]
@@ -292,7 +292,12 @@ def get_coord_info(id):
             doc = resp["_source"]
             ra = doc["ra"]
             dec = doc["dec"]
-            return "({0}, {1})".format(ra, dec)
+            if "sdmname" in doc.keys():
+                sdmname = doc["sdmname"]
+                return ("Candidate at RA, Dec = ({0}, {1}). SDM named {2}"
+                        .format(ra, dec, sdmname))
+            else:
+                return "Candidate at RA, Dec = ({0}, {1})".format(ra, dec)
         else:
             return "No candId {1} found".format(scanId, id)            
     except TransportError:

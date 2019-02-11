@@ -46,13 +46,13 @@
 	$(context).css("color", "red");
     }
 
-    function click_cand(event, context, cand_id) {
+    function query_cand(event, context, cand_id) {
         // activate the scan popup
-        request_url = "/api/query-coord/" + cand_id;
+        request_url = "/api/query-cand/" + cand_id;
 	console.log(request_url);
 	$.get(request_url, function(resp) {
                 // resp contains the html to display
-                $("#query-coord").html(resp).dialog({
+                $("#query-cand").html(resp).dialog({
                     width: 'auto',
                     modal: true,
                     beforeClose: function() {
@@ -126,7 +126,7 @@
         resp += "<li>Use pulldown to change sort field to snrtot or candmjd.</li></ul></p>";
         resp += "<p>Group tagging uses cookies to apply single tag to all candidates in last query.</p>";
         resp += "<p>Candidate index fields: candId, scanId, datasetId, prefsname, snr1, snrtot, clustersize, candmjd, canddm (pc/cm3), canddt (s), scan, segment, integration, dmind, dtind, and (sometimes) spec/im + std/skew/kurtosis</p>";
-        resp += "<p>Scan index fields: scanId, prefsname, ra_deg, dec_deg, source, startTime, stopTime, datasource, scan_intent, scanNo, datasetId.</p>";
+        resp += "<p>Scan index fields: scanId, prefsname, ra, dec, source, startTime, stopTime, datasource, scan_intent, scanNo, datasetId.</p>";
         // resp contains the html to display
         $("#help-info").html(resp).dialog({
             width: '50%',
@@ -144,9 +144,9 @@
         candId = record.scanId.toString() + "_seg" + record.segment.toString() + "-i" + record.integration.toString() + "-dm" + record.dmind.toString() + "-dt" + record.dtind.toString()
         htmlString += candId
         htmlString += "<ul class=\"columns\"><li>candmjd: "
-        htmlString += record.candmjd.toString() + "</li>"
+        htmlString += record.candmjd.toFixed(5).toString() + "</li>"
         htmlString += "<li>(canddm, canddt): "
-        htmlString += record.canddm.toString() + ", " + record.canddt.toString() + "</li>"
+        htmlString += record.canddm.toFixed(1).toString() + ", " + record.canddt.toString() + "</li>"
         htmlString += "<li>snrtot: "
         htmlString += record.snrtot.toFixed(2).toString() + "</li>"
         htmlString += "<li>clustersize: "
@@ -162,9 +162,9 @@
         var dec1 = dec + 0.002778
 	htmlString += "More info:"
         htmlString += "<ul class=\"columns\"><li class=\"clickable\" onclick=\"click_cands(event, this, '" + record.scanId + "')\">Show scan summary</li>"
-        htmlString += "<li class=\"clickable\" onclick=\"click_cand(event, this, '" + candId + "')\">Query coord</li>"
-        htmlString += "<li class=\"clickable\" onclick=\"click_scan(event, this, '" + record.scanId + "')\">Show scan info</li>"
-        htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22ra%5C%5C%3A%5C%5C%3E" + ra0 + "%20AND%20ra%5C%5C%3A%5C%5C%3C" + ra1 + "%20AND%20dec%5C%5C%3A%5C%5C%3E" + dec0 + "%20AND%20dec%5C%5C%3A%5C%5C%3C" + dec1 + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search within 10arcsec</a></li>"
+        htmlString += "<li class=\"clickable\" onclick=\"click_scan(event, this, '" + record.scanId + "')\">Show metadata and prefs</li>"
+        htmlString += "<li class=\"clickable\" onclick=\"query_cand(event, this, '" + candId + "')\">Query candidate</li>"
+        htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22ra%5C%5C%3A%5C%5C%3E" + ra0 + "%20AND%20ra%5C%5C%3A%5C%5C%3C" + ra1 + "%20AND%20dec%5C%5C%3A%5C%5C%3E" + dec0 + "%20AND%20dec%5C%5C%3A%5C%5C%3C" + dec1 + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search within 10\"</a></li>"
 	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"
 	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%20AND%20segment%5C%5C%3A" + record.segment.toString() + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in segment</a></li></ul>"
 
@@ -237,13 +237,13 @@
                 from: 0,
                 search_sortby: [
                     {'display':'startTime',         'field':'startTime'},
-                    {'display':'ra_deg',         'field':'ra_deg'},
-                    {'display':'dec_deg',         'field':'dec_deg'},
+                    {'display':'ra',         'field':'ra'},
+                    {'display':'dec',         'field':'dec'},
                 ],
                 search_button: true,
                 sharesave_link: true,
                 debug: false,
-                stored_fields: ["scanId", "datasetId", "scan_intent", "datasource", "startTime", "stopTime", "ra_deg", "dec_deg", "scanNo", "subscanNo", "prefsname", "source", "inttime", "band", "nsegment", "pending", "finished", "errors"],
+                stored_fields: ["scanId", "datasetId", "scan_intent", "datasource", "startTime", "stopTime", "ra", "dec", "scanNo", "subscanNo", "prefsname", "source", "inttime", "band", "nsegment", "pending", "finished", "errors"],
                 render_results_metadata: pageSlider,
                 "result_display" :
                 [
@@ -258,8 +258,8 @@
                     { "pre": " ", "field": "inttime", "post": "</li>"},
                     { "pre": "<li>(startTime, stopTime): ", "field": "startTime", "post": "," },
                     { "pre": " ", "field": "stopTime", "post": "</li>"},
-                    { "pre": "<li>(RA, Dec): ", "field": "ra_deg", "post": "," },
-                    { "pre": " ", "field": "dec_deg", "post": "</li>" },
+                    { "pre": "<li>(RA, Dec): ", "field": "ra", "post": "," },
+                    { "pre": " ", "field": "dec", "post": "</li>" },
 		    { "pre": "<li>(searchtype, fftmode): ", "field": "searchtype", "post": ","},
                     { "pre": " ", "field": "fftmode", "post": "</li>"},
                     { "pre": "<li>Submitted nsegment: ", "field": "nsegment", "post": " (" },
@@ -505,7 +505,7 @@
 	{% endif %}
     </div>
     <div id="scan-info" title="Scan info"></div>
-    <div id="query-coord" title="Query coord"></div>
+    <div id="query-cand" title="Query cand"></div>
     <div id="cands-info" title="Cands info"><iframe src="" height="0" width="0"></iframe></div>
     <div id="preference-info" title="Preference info"></div>
     <div id="mock-info" title="Mock info"></div>
