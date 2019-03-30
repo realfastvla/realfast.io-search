@@ -17,7 +17,7 @@ CORS(app)
 app.secret_key = b'r8\x9f\xbda\xc8q]]\x9e\xbc\x82y\x08h\x95\x8b\xc9\xcb\xa8\xd8\x90\x93\x18'
 es = Elasticsearch("http://realfast.nrao.edu:9200", timeout=20, retry_on_timeout=True)
 log_lock = Lock()
-index_prefixes = ["new", "final", "test", "aws"]
+index_prefixes = ["new", "final", "test", "chime", "aws"]
 allowed_tags = ["rfi", "bad", "noise", "interesting", "astrophysical", "mock"]
 
 def sanitize(s):
@@ -197,18 +197,18 @@ def add_candidate_tag(id):
         else:
             tag_list.append(tag)
             new_tags = ",".join(tag_list)
-            if "tagcount" in doc["_source"]:
-                new_tagcount = doc["_source"]["tagcount"] + 1
-            else:
-                new_tagcount = 1
+#            if "tagcount" in doc["_source"]:
+#                new_tagcount = doc["_source"]["tagcount"] + 1
+#            else:
+#                new_tagcount = 1
     else:
         new_tags = tag
-        if "tagcount" in doc["_source"]:
-            new_tagcount = doc["_source"]["tagcount"] + 1
-        else:
-            new_tagcount = 1
-    resp = es.update(prefix+"cands", prefix+"cand", id, {"doc": {session["userid"]+"_tags": new_tags, "tagcount": new_tagcount}})
-
+#        if "tagcount" in doc["_source"]:
+#            new_tagcount = doc["_source"]["tagcount"] + 1
+#        else:
+#            new_tagcount = 1
+    resp = es.update(prefix+"cands", prefix+"cand", id, {"doc": {session["userid"]+"_tags": new_tags}})
+    resp = es.update(prefix+"cands", prefix+"cand", id, {"script": 'ctx._source.tagcount += 1'})
     log("added tag %s" % tag, "candidate %s" % id)
     return json.dumps(resp)
 
@@ -292,12 +292,15 @@ def get_coord_info(id):
             doc = resp["_source"]
             ra = doc["ra"]
             dec = doc["dec"]
+            from rf_meta_query import frb_cand, radio
+            frbc = frb_cand.build_frb_cand(ra, dec, 11111)
+            first_cat, first_summary = radio.query_first(frbc)
             if "sdmname" in doc.keys():
                 sdmname = doc["sdmname"]
-                return ("Candidate at RA, Dec = ({0}, {1}). SDM named {2}"
-                        .format(ra, dec, sdmname))
+                return ("Candidate at RA, Dec = ({0}, {1}). SDM named {2}. {3}"
+                        .format(ra, dec, sdmname, first_summary[0]))
             else:
-                return "Candidate at RA, Dec = ({0}, {1})".format(ra, dec)
+                return "Candidate at RA, Dec = ({0}, {1}). {2}".format(ra, dec, first_summary[0])
         else:
             return "No candId {1} found".format(scanId, id)            
     except TransportError:
@@ -321,6 +324,10 @@ def get_preference_info(id):
             dtarr = doc["dtarr"]
             fftmode = doc["fftmode"]
             flaglist = doc["flaglist"]
+            if "gainfile" in doc:
+                gainfile = doc["gainfile"]
+            else:
+                gainfile = None
             maxdm = doc["maxdm"]
             maximmem = doc["maximmem"]
             memory_limit = doc["memory_limit"]
@@ -328,7 +335,7 @@ def get_preference_info(id):
             npixx = doc["npixx"]
             npixy = doc["npixy"]
             rfpipe_version = doc["rfpipe_version"]
-            savecands = doc["savecands"]
+            savecandcollection = doc["savecandcollection"]
             savenoise = doc["savenoise"]
             searchtype = doc["searchtype"]
             selectpol = doc["selectpol"]
@@ -340,7 +347,7 @@ def get_preference_info(id):
             uvres = doc["uvres"]
             workdir = doc["workdir"]
             
-            return render_template("preference_info.html", prefsname=id, chans=chans, clustercands=clustercands, dmarr=dmarr, dtarr=dtarr, fftmode=fftmode, maxdm=maxdm, flaglist=flaglist, maximmem=maximmem, memory_limit=memory_limit, npix_max=npix_max, npixx=npixx, npixy=npixy, rfpipe_version=rfpipe_version, savecands=savecands, savenoise=savenoise, searchtype=searchtype, selectpol=selectpol, sigma_image1=sigma_image1, sigma_kalman=sigma_kalman, timesub=timesub, uvoversample=uvoversample, uvres=uvres, workdir=workdir)
+            return render_template("preference_info.html", prefsname=id, chans=chans, clustercands=clustercands, dmarr=dmarr, dtarr=dtarr, fftmode=fftmode, gainfile=gainfile, maxdm=maxdm, flaglist=flaglist, maximmem=maximmem, memory_limit=memory_limit, npix_max=npix_max, npixx=npixx, npixy=npixy, rfpipe_version=rfpipe_version, savecandcollection=savecandcollection, savenoise=savenoise, searchtype=searchtype, selectpol=selectpol, sigma_image1=sigma_image1, sigma_kalman=sigma_kalman, timesub=timesub, uvoversample=uvoversample, uvres=uvres, workdir=workdir)
         else:
             return "No scan found for id {0}".format(id)
     except TransportError:
