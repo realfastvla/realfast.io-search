@@ -172,15 +172,15 @@
         var possible_tags = {{ allowed_tags|tojson|safe }};
         if (!record.{{ session.userid }}_tags) {
             for (var i = 0; i < possible_tags.length; i++) {
-                htmlString += "<div class=\"clickablecheck\"><input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" name=\"" + possible_tags[i] + "\"> " + possible_tags[i] + "</div>";
+                htmlString += "<div class=\"clickablecheck\"><input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" id=\"" + possible_tags[i] + "\" name=\"" + possible_tags[i] + "\" value=\"" + possible_tags[i] + "\"><label for=\"" + possible_tags[i] + "\">" + possible_tags[i] + "</label></div> ";
             }
         } else {
             var curr_tags = record.{{ session.userid }}_tags.split(",");
             for (var i = 0; i < possible_tags.length; i++) {
                 if (curr_tags.includes(possible_tags[i])) {
-		    htmlString += "<div class=\"clickablecheck\"><input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" name=\"" + possible_tags[i] + "\" checked> " + possible_tags[i] + "</div> ";
+		    htmlString += "<div class=\"clickablecheck\"><input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" id=\"" + possible_tags[i] + "\" name=\"" + possible_tags[i] + "\" value=\"" + possible_tags[i] + "\" checked><label for=\"" + possible_tags[i] + "\">" + possible_tags[i] + "</label></div> ";
                 } else {
-		    htmlString += "<div class=\"clickablecheck\"><input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" name=\"" + possible_tags[i] + "\"> " + possible_tags[i] + "</div> ";
+		    htmlString += "<div class=\"clickablecheck\"><input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" id=\"" + possible_tags[i] + "\" name=\"" + possible_tags[i] + "\" value=\"" + possible_tags[i] + "\"><label for=\"" + possible_tags[i] + "\">" + possible_tags[i] + "</label></div> ";
                 }
             }
         }
