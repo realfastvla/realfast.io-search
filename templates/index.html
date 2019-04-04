@@ -168,8 +168,25 @@
 	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"
 	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%20AND%20segment%5C%5C%3A" + record.segment.toString() + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in segment</a></li></ul>"
 
-        htmlString += "Tags: <div class=\"checks\">"
-        var possible_tags = {{ allowed_tags|tojson|safe }};
+        htmlString += "Nature tags:<div class=\"checks\">"
+        var possible_tags = {{ nature_tags|tojson|safe }};
+        if (!record.{{ session.userid }}_tags) {
+            for (var i = 0; i < possible_tags.length; i++) {
+                htmlString += "<div class=\"clickablecheck\"><input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" id=\"" + possible_tags[i] + "\" name=\"" + possible_tags[i] + "\" value=\"" + possible_tags[i] + "\"><label for=\"" + possible_tags[i] + "\">" + possible_tags[i] + "</label></div> ";
+            }
+        } else {
+            var curr_tags = record.{{ session.userid }}_tags.split(",");
+            for (var i = 0; i < possible_tags.length; i++) {
+                if (curr_tags.includes(possible_tags[i])) {
+		    htmlString += "<div class=\"clickablecheck\"><input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" id=\"" + possible_tags[i] + "\" name=\"" + possible_tags[i] + "\" value=\"" + possible_tags[i] + "\" checked><label for=\"" + possible_tags[i] + "\">" + possible_tags[i] + "</label></div> ";
+                } else {
+		    htmlString += "<div class=\"clickablecheck\"><input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" id=\"" + possible_tags[i] + "\" name=\"" + possible_tags[i] + "\" value=\"" + possible_tags[i] + "\"><label for=\"" + possible_tags[i] + "\">" + possible_tags[i] + "</label></div> ";
+                }
+            }
+        }
+        htmlString += "</div>";
+        htmlString += "Action tabs:<div class=\"checks\">";
+        var possible_tags = {{ action_tags|tojson|safe }};
         if (!record.{{ session.userid }}_tags) {
             for (var i = 0; i < possible_tags.length; i++) {
                 htmlString += "<div class=\"clickablecheck\"><input onchange=\"change_tag('" + id + "', this);\" type=\"checkbox\" id=\"" + possible_tags[i] + "\" name=\"" + possible_tags[i] + "\" value=\"" + possible_tags[i] + "\"><label for=\"" + possible_tags[i] + "\">" + possible_tags[i] + "</label></div> ";
@@ -415,13 +432,25 @@
       height:25px;
     }
 
+    label {
+      cursor: pointer;
+      color:black;
+      float: right;
+      margin-left: 2pt;
+    }
+
+    label:hover {
+      cursor: pointer;
+      color:#ccc;
+    }
+
     a:hover {
       text-decoration: none;
       cursor: pointer;
       color:#ccc;
     }
 
-    .clickable:hover {
+    .clickable: {
       cursor: pointer;
     }
 
@@ -432,13 +461,7 @@
 
     .clickablecheck {
       float: left;
-      margin-right: 12pt;
-    }
-
-    .clickablecheck:hover {
-      float: left;
-      margin-right: 12pt;
-      color:#ccc;
+      margin-right: 10pt;
     }
 
     #group-tag-dialog {

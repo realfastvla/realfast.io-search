@@ -18,7 +18,9 @@ app.secret_key = b'r8\x9f\xbda\xc8q]]\x9e\xbc\x82y\x08h\x95\x8b\xc9\xcb\xa8\xd8\
 es = Elasticsearch("http://realfast.nrao.edu:9200", timeout=20, retry_on_timeout=True)
 log_lock = Lock()
 index_prefixes = ["new", "final", "test", "chime", "aws"]
-allowed_tags = ["rfi", "bad", "noise", "interesting", "astrophysical", "mock"]
+nature_tags = ["rfi", "instrumental", "unsure", "astrophysical", "mock"]
+action_tags = ["delete", "archive", "notify"]
+allowed_tags = nature_tags + action_tags
 
 def sanitize(s):
     s = s.replace("&", "&amp")
@@ -83,7 +85,7 @@ def checkpoint_log():
 @app.route("/")
 def index():
     # return the frontend
-    return render_template("index.html", index_prefixes=index_prefixes, allowed_tags=allowed_tags, curr_tab=0)
+    return render_template("index.html", index_prefixes=index_prefixes, action_tags=action_tags, nature_tags=nature_tags, allowed_tags=allowed_tags, curr_tab=0)
 
 @app.route("/filter")
 def filter_by_tag():
