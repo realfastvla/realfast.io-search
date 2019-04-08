@@ -199,18 +199,11 @@ def add_candidate_tag(id):
         else:
             tag_list.append(tag)
             new_tags = ",".join(tag_list)
-#            if "tagcount" in doc["_source"]:
-#                new_tagcount = doc["_source"]["tagcount"] + 1
-#            else:
-#                new_tagcount = 1
     else:
         new_tags = tag
-#        if "tagcount" in doc["_source"]:
-#            new_tagcount = doc["_source"]["tagcount"] + 1
-#        else:
-#            new_tagcount = 1
+        resp = es.update(prefix+"cands", prefix+"cand", id, {"script": 'ctx._source.tagcount += 1'})
+
     resp = es.update(prefix+"cands", prefix+"cand", id, {"doc": {session["userid"]+"_tags": new_tags}})
-    resp = es.update(prefix+"cands", prefix+"cand", id, {"script": 'ctx._source.tagcount += 1'})
     log("added tag %s" % tag, "candidate %s" % id)
     return json.dumps(resp)
 
@@ -224,11 +217,6 @@ def remove_candidate_tag(id):
     else:
         prefix = "new"
 
-    # experimental guard
-#    if prefix != "test":
-#        raise ValueError("can't use this feature outside test index on experimental branch")
-    # end guard
-
     doc = es.get(index=prefix+"cands", doc_type=prefix+"cand", id=id, _source=[session["userid"]+"_tags"])
     if session["userid"]+"_tags" in doc["_source"]:
         curr_tags = doc["_source"][session["userid"]+"_tags"]
@@ -240,6 +228,7 @@ def remove_candidate_tag(id):
             new_tags = ",".join(tag_list)
     else:
         return
+
     if new_tags != "":
         resp = es.update(prefix+"cands", prefix+"cand", id, {"doc": {session["userid"]+"_tags": new_tags}})
     else:
