@@ -185,11 +185,6 @@ def add_candidate_tag(id):
     else:
         prefix = "new"
 
-    # experimental guard
-#    if prefix != "test":
-#        raise ValueError("can't use this feature outside test index on experimental branch")
-    # end guard
-
     doc = es.get(index=prefix+"cands", doc_type=prefix+"cand", id=id, _source=[session["userid"]+"_tags"])
     if session["userid"]+"_tags" in doc["_source"]:
         curr_tags = doc["_source"][session["userid"]+"_tags"]
@@ -232,7 +227,8 @@ def remove_candidate_tag(id):
     if new_tags != "":
         resp = es.update(prefix+"cands", prefix+"cand", id, {"doc": {session["userid"]+"_tags": new_tags}})
     else:
-        resp = es.update(prefix+"cands", prefix+"cand", id, {"script": 'ctx._source.remove("' + session["userid"]+"_tags" + '"); ctx._source.tagcount -= 1'})
+        resp = es.update(prefix+"cands", prefix+"cand", id, {"script": 'ctx._source.remove("' + session["userid"]+"_tags" + '")'})
+        resp = es.update(prefix+"cands", prefix+"cand", id, {"script": 'ctx._source.tagcount -= 1'})
 
     log("removed tag %s" % tag, "candidate %s" % id)
     return json.dumps(resp)
