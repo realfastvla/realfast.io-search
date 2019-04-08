@@ -337,7 +337,12 @@ def get_preference_info(id):
             npixx = doc["npixx"]
             npixy = doc["npixy"]
             rfpipe_version = doc["rfpipe_version"]
-            savecandcollection = doc["savecandcollection"]
+            if "savecandcollection" in doc:
+                savecandcollection = doc["savecandcollection"]
+            elif "savecands" in doc:
+                savecandcollection = doc["savecands"]
+            else:
+                savecandcollection = None
             savenoise = doc["savenoise"]
             searchtype = doc["searchtype"]
             selectpol = doc["selectpol"]
