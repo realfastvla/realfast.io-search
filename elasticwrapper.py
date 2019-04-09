@@ -64,6 +64,20 @@ def get_curr_log():
     else:
         return "Not allowed!"
 
+@app.route("/show-tagging-examples")
+def show_tagging_examples():
+    if session["logged_in"]:
+        html = '<head><style>ul#ll {margin-left: 10px; margin-top: 1em;}</style></head><body><h4>Click on a tag to see a candidates tagged in that way:</h4><ul id="ll">'
+        html += '<li><a href="http://realfast.nrao.edu/plots/tagging_examples/rfi">rfi</a> -- Tends to be spectrally narrow and images messy.</li>'
+        html += '<li><a href="http://realfast.nrao.edu/plots/tagging_examples/instrumental">instrumental</a> -- Diverse class, but sources at phase center are suspicious.</li>'
+        html += '<li><a href="http://realfast.nrao.edu/plots/tagging_examples/unsure">unsure</a> -- Sometimes RFI looks very astrophysical, so tagging with \"unsure\" and \"astrophysical\" is ok. </li>'
+        html += '<li><a href="http://realfast.nrao.edu/plots/tagging_examples/astrophysical">astrophysical</a> -- Narrow in time, broad in frequency, and point-like in image (unless there are calibration problems).</li>'
+        html += '<li><a href="http://realfast.nrao.edu/plots/tagging_examples/mock">mock</a> -- Like astrophysical, but broadband and always set to have l or m equal to zero (i.e., should sit on line that splits image in half on x or y) </li></ul>'
+        html += "</body"
+        return html
+    else:
+        return "Not allowed!"
+
 @app.route("/checkpoint-log")
 def checkpoint_log():
     if session["logged_in"]:

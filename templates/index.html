@@ -493,6 +493,7 @@
           {% if session.logged_in %}
             <li><a href="#tabs-2">Scans Searched</a></li>
             <li><a href="/get-curr-log">Tagging Log</a></li>
+            <li><a href="/show-tagging-examples">Tagging Examples</a></li>
 	    <span style="float: right">{{session.userid}} logged in</span>
           {% endif %}
         </ul>
@@ -536,7 +537,6 @@
     <div id="group-tag-dialog" title="Group tag">
         <h3>Apply what tags to last search result?</h3>
     
-
 
     {% for tag in allowed_tags %}
         <input type="checkbox" id="group-tag-{{ tag }}" name="{{ tag }}"> {{ tag }} <br>

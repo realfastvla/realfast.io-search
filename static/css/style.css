@@ -41,3 +41,25 @@ h4 {
   margin-bottom: 10px;
 }
 
+label {
+    cursor: pointer;
+    color:black;
+    float: right;
+    margin-left: 2pt;
+}
+
+label:hover {
+    cursor: pointer;
+    color:#ccc;
+}
+
+a {
+    color:black;
+}
+
+a:hover {
+    text-decoration: none;
+    cursor: pointer;
+    color:#ccc;
+}
+
