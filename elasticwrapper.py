@@ -296,8 +296,8 @@ def get_coord_info(id):
             from rf_meta_query import frb_cand, radio
             frbc = frb_cand.build_frb_cand(ra, dec, 11111)
             first_cat, first_summary = radio.query_first(frbc)
-#            sdmname = doc["sdmname"] if "sdmname" in doc.keys() else None
-            return render_template("query_coord.html", ra=ra, dec=dec, first=first_summary[0])
+            sdmname = doc["sdmname"] if "sdmname" in doc.keys() else "No SDM available"
+            return render_template("query_coord.html", ra=ra, dec=dec, first=first_summary[0], sdmname=sdmname)
         else:
             return "No candId {1} found".format(scanId, id)            
     except TransportError:
