@@ -185,7 +185,7 @@
             }
         }
         htmlString += "</div>";
-        htmlString += "Action tabs:<div class=\"checks\">";
+        htmlString += "Action tags:<div class=\"checks\">";
         var possible_tags = {{ action_tags|tojson|safe }};
         if (!record.{{ session.userid }}_tags) {
             for (var i = 0; i < possible_tags.length; i++) {
@@ -217,6 +217,7 @@
                 search_url : "http://search.realfast.io/api/cands/cand/_search",
                 datatype : "json",
                 default_freetext_fuzzify: "*",
+		freetext_submit_delay: 10000,
                 sort: [{"snrtot" : {"order" : "desc"}}],
                 facets: [ ],
                 default_facet_size: 12,
@@ -308,7 +309,7 @@
 
     function reset_group_tag() {
         var default_html = "";
-        default_html += '<h3>Apply what tags to last search result?</h3>';
+        default_html += '<h3>Set all current candidates with what tags?</h3>';
         {% for tag in allowed_tags %}
             default_html += '<input type="checkbox" id="group-tag-{{ tag }}" name="{{ tag }}"> {{ tag }} <br>';
         {% endfor %}
@@ -337,8 +338,8 @@
                 new_tags = new_tags.slice(0, new_tags.length-1);
             }
 
-            selectedHTML = new_tags;
-            var confirmationText = "<p>Are you sure you want to re-tag these candidates with " + new_tags + "?</p>";
+            selectedHTML = new_tags;		
+            var confirmationText = "<p>Re-tag all current candidates with " + new_tags + "?</p>";
             confirmationText += '<button onclick="group_tag(2, this, selectedHTML)">Yes</button>';
             confirmationText += '<button onclick="group_tag(-1, this)">No</button>';
             $("#group-tag-dialog").html(confirmationText).dialog({
@@ -434,27 +435,22 @@
 
     label {
       cursor: pointer;
-      color:black;
+      color:#0088cc;
       float: right;
       margin-left: 2pt;
     }
 
     label:hover {
       cursor: pointer;
-      color:#ccc;
+      color:#aaa;
     }
 
-    a:hover {
-      text-decoration: none;
+    li.clickable {
       cursor: pointer;
-      color:#ccc;
+      color:#0088cc;
     }
 
-    .clickable: {
-      cursor: pointer;
-    }
-
-    .clickable:hover {
+    li.clickable:hover {
       cursor: pointer;
       color:#ccc;
     }
@@ -494,6 +490,7 @@
             <li><a href="#tabs-2">Scans Searched</a></li>
             <li><a href="/get-curr-log">Tagging Log</a></li>
             <li><a href="/show-tagging-examples">Tagging Examples</a></li>
+            <li><a href="/show-refined-candidates">Refined Candidates</a></li>
 	    <span style="float: right">{{session.userid}} logged in</span>
           {% endif %}
         </ul>
@@ -535,8 +532,7 @@
     <div id="mock-info" title="Mock info"></div>
     <div id="help-info" title="Help"></div>
     <div id="group-tag-dialog" title="Group tag">
-        <h3>Apply what tags to last search result?</h3>
-    
+	<h3>Set all current candidates with what tags?</h3>
 
     {% for tag in allowed_tags %}
         <input type="checkbox" id="group-tag-{{ tag }}" name="{{ tag }}"> {{ tag }} <br>

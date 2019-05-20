@@ -73,10 +73,21 @@ def show_tagging_examples():
         html += '<li><a href="http://realfast.nrao.edu/plots/tagging_examples/unsure">unsure</a> -- Sometimes RFI looks very astrophysical, so tagging with \"unsure\" and \"astrophysical\" is ok. </li>'
         html += '<li><a href="http://realfast.nrao.edu/plots/tagging_examples/astrophysical">astrophysical</a> -- Narrow in time, broad in frequency, and point-like in image (unless there are calibration problems).</li>'
         html += '<li><a href="http://realfast.nrao.edu/plots/tagging_examples/mock">mock</a> -- Like astrophysical, but broadband and always set to have l or m equal to zero (i.e., should sit on line that splits image in half on x or y) </li></ul>'
-        html += "</body"
+        html += "</body>"
         return html
     else:
         return "Not allowed!"
+
+
+@app.route("/show-refined-candidates")
+def show_refined_candidates():
+    if session["logged_in"]:
+        html = '<body>List of <a href="http://realfast.nrao.edu/plots/refinement">refined candidates</a>.'
+        html += "</body>"
+        return html
+    else:
+        return "Not allowed!"
+
 
 @app.route("/checkpoint-log")
 def checkpoint_log():
@@ -321,10 +332,10 @@ def get_preference_info(id):
             dtarr = doc["dtarr"]
             fftmode = doc["fftmode"]
             flaglist = doc["flaglist"]
-            if "gainfile" in doc:
-                gainfile = doc["gainfile"]
-            else:
-                gainfile = None
+#            if "gainfile" in doc:  # not used in name or id
+#                gainfile = doc["gainfile"]
+#            else:
+#                gainfile = None
             maxdm = doc["maxdm"]
             maximmem = doc["maximmem"]
             memory_limit = doc["memory_limit"]
@@ -349,7 +360,7 @@ def get_preference_info(id):
             uvres = doc["uvres"]
             workdir = doc["workdir"]
             
-            return render_template("preference_info.html", prefsname=id, chans=chans, clustercands=clustercands, dmarr=dmarr, dtarr=dtarr, fftmode=fftmode, gainfile=gainfile, maxdm=maxdm, flaglist=flaglist, maximmem=maximmem, memory_limit=memory_limit, npix_max=npix_max, npixx=npixx, npixy=npixy, rfpipe_version=rfpipe_version, savecandcollection=savecandcollection, savenoise=savenoise, searchtype=searchtype, selectpol=selectpol, sigma_image1=sigma_image1, sigma_kalman=sigma_kalman, timesub=timesub, uvoversample=uvoversample, uvres=uvres, workdir=workdir)
+            return render_template("preference_info.html", prefsname=id, chans=chans, clustercands=clustercands, dmarr=dmarr, dtarr=dtarr, fftmode=fftmode, maxdm=maxdm, flaglist=flaglist, maximmem=maximmem, memory_limit=memory_limit, npix_max=npix_max, npixx=npixx, npixy=npixy, rfpipe_version=rfpipe_version, savecandcollection=savecandcollection, savenoise=savenoise, searchtype=searchtype, selectpol=selectpol, sigma_image1=sigma_image1, sigma_kalman=sigma_kalman, timesub=timesub, uvoversample=uvoversample, uvres=uvres, workdir=workdir)
         else:
             return "No scan found for id {0}".format(id)
     except TransportError:
