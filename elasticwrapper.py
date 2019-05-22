@@ -169,7 +169,8 @@ def get_api(query):
         query[0] = prefix + query[0]
         query[1] = prefix + query[1]
         query = "/".join(query)
-        print(query)
+        query = query.replace('?', '?source_content_type=application/json&')  # for elasticsearch 6 compatibility
+        print('query:', query)
         # get rid of backslashes in URL (but not before "), it seems facetview doesn't account for this
         query = query.replace("%5C%5C", "")
         resp = requests.get("http://realfast.nrao.edu:9200/" + query)
@@ -190,7 +191,7 @@ def get_api(query):
         query_string = urllib.parse.quote(json.dumps(query_obj))
         path = '/'.join([pth for pth in request.path.split("/")[2:]])
         path = path.replace('cands/cand', 'finalcands/finalcand')  # this returns 1 cand. why?**
-        fullpath = "http://realfast.nrao.edu:9200/" + path + "?source=" + query_string
+        fullpath = "http://realfast.nrao.edu:9200/" + path + "?source_content_type=application/json&source=" + query_string
         resp = requests.get(fullpath)
         print("*"*100)
         print("fullpath:", fullpath)
@@ -271,7 +272,7 @@ def get_scan_info(id):
         if resp['found']:
             doc = resp["_source"]
             scanId = doc["scanId"]
-            scanIdLink = "http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22idgoeshere%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D".replace("idgoeshere", scanId)
+            scanIdLink = "http://search.realfast.io/?source_content_type=application/json&source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22idgoeshere%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D".replace("idgoeshere", scanId)
             scanNo = doc["scanNo"]
             subscanNo = doc["subscanNo"]
             startTime = doc["startTime"]
