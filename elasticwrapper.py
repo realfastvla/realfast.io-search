@@ -305,11 +305,13 @@ def get_coord_info(id):
             doc = resp["_source"]
             ra = doc["ra"]
             dec = doc["dec"]
-            from rf_meta_query import frb_cand, radio
-            frbc = frb_cand.build_frb_cand(ra, dec, 11111)
-            first_cat, first_summary = radio.query_first(frbc)
+            frbprob = "{0:.3f}".format(doc["frbprob"]) if "frbprob" in doc else "None"
+#            from rf_meta_query import frb_cand, radio
+#            frbc = frb_cand.build_frb_cand(ra, dec, 11111)
+#            first_cat, first_summary = radio.query_first(frbc)
             sdmname = doc["sdmname"] if "sdmname" in doc.keys() else "No SDM available"
-            return render_template("query_coord.html", ra=ra, dec=dec, first=first_summary[0], sdmname=sdmname)
+#            return render_template("query_coord.html", ra=ra, dec=dec, first=first_summary[0], sdmname=sdmname, frbprob=frbprob)
+            return render_template("query_coord.html", ra=ra, dec=dec, sdmname=sdmname, frbprob=frbprob)
         else:
             return "No candId {1} found".format(scanId, id)            
     except TransportError:
