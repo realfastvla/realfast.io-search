@@ -119,13 +119,13 @@
         url = "https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#_boolean_operators";
         resp = "<ul><li>Search examples:</li>";
         resp += "<ul><li>canddm:>100</li>";
-	resp += "<li>snrtot:>10 AND NOT canddt:>0.02</li></ul>";
+	resp += "<li>snr1:>10 AND NOT canddt:>0.02</li></ul>";
         resp += "<li>See also the <a href='" + url + "'>elasticsearch help</a>.</li>";
 	resp += "<li>If you see page stuck with 'SEARCHING' click the x to reset search.</li>";
 	resp += "<li>Click arrow to change sort order.</li>";
         resp += "<li>Use pulldown to change sort field to snrtot or candmjd.</li></ul></p>";
         resp += "<p>Group tagging uses cookies to apply single tag to all candidates in last query.</p>";
-        resp += "<p>Candidate index fields: candId, scanId, datasetId, prefsname, snr1, snrtot, clustersize, candmjd, canddm (pc/cm3), canddt (s), scan, segment, integration, dmind, dtind, and (sometimes) spec/im + std/skew/kurtosis</p>";
+        resp += "<p>Candidate index fields: candId, scanId, datasetId, prefsname, snr1, snrk, snrtot, clustersize, candmjd, canddm (pc/cm3), canddt (s), scan, segment, integration, dmind, dtind, and (sometimes) spec/im + std/skew/kurtosis</p>";
         resp += "<p>Scan index fields: scanId, prefsname, ra, dec, source, startTime, stopTime, datasource, scan_intent, scanNo, datasetId.</p>";
         // resp contains the html to display
         $("#help-info").html(resp).dialog({
@@ -147,8 +147,10 @@
         htmlString += record.candmjd.toFixed(5).toString() + "</li>"
         htmlString += "<li>(canddm, canddt): "
         htmlString += record.canddm.toFixed(1).toString() + ", " + record.canddt.toString() + "</li>"
-        htmlString += "<li>snrtot: "
-        htmlString += record.snrtot.toFixed(2).toString() + "</li>"
+        htmlString += "<li>SNR (im, k, tot): "
+        htmlString += record.snr1.toFixed(1).toString() + ", "
+        htmlString += record.snrk.toFixed(1).toString() + ", "
+        htmlString += record.snrtot.toFixed(1).toString() + "</li>"
         htmlString += "<li>clustersize: "
         htmlString += record.clustersize.toString()
         htmlString += "</li></li></ul>"
@@ -164,9 +166,9 @@
         htmlString += "<ul class=\"columns\"><li class=\"clickable\" onclick=\"click_cands(event, this, '" + record.scanId + "')\">Show scan summary</li>"
         htmlString += "<li class=\"clickable\" onclick=\"click_scan(event, this, '" + record.scanId + "')\">Show metadata, prefs, mocks</li>"
         htmlString += "<li class=\"clickable\" onclick=\"query_cand(event, this, '" + candId + "')\">Query candidate</li>"
-        htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22ra%5C%5C%3A%5C%5C%3E" + ra0 + "%20AND%20ra%5C%5C%3A%5C%5C%3C" + ra1 + "%20AND%20dec%5C%5C%3A%5C%5C%3E" + dec0 + "%20AND%20dec%5C%5C%3A%5C%5C%3C" + dec1 + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search within 10\"</a></li>"
-	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"
-	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%20AND%20segment%5C%5C%3A" + record.segment.toString() + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in segment</a></li></ul>"
+        htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22ra%5C%5C%3A%5C%5C%3E" + ra0 + "%20AND%20ra%5C%5C%3A%5C%5C%3C" + ra1 + "%20AND%20dec%5C%5C%3A%5C%5C%3E" + dec0 + "%20AND%20dec%5C%5C%3A%5C%5C%3C" + dec1 + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search within 10\"</a></li>"
+	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"
+	htmlString += "<li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%20AND%20segment%5C%5C%3A" + record.segment.toString() + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in segment</a></li></ul>"
 
         htmlString += "Nature tags:<div class=\"checks\">"
         var possible_tags = {{ nature_tags|tojson|safe }};
@@ -218,13 +220,14 @@
                 datatype : "json",
                 default_freetext_fuzzify: "*",
 		freetext_submit_delay: 100000,
-                sort: [{"snrtot" : {"order" : "desc"}}],
+                sort: [{"snr1" : {"order" : "desc"}}],
                 facets: [ ],
                 default_facet_size: 12,
                 include_facets_in_url:false,
                 include_facets:true,
                 from: 0,
                 search_sortby: [
+                    {'display':'snr1',         'field':'snr1'},
                     {'display':'snrtot',         'field':'snrtot'},
                     {'display':'candmjd',      'field':'candmjd'},
                     {'display':'clustersize',      'field':'clustersize'},
@@ -232,7 +235,7 @@
                 search_button: true,
                 sharesave_link: true,
                 debug: false,
-                stored_fields: ["scanId", "prefsname",{% if session.logged_in %}{{ (session.userid + "_tags")|tojson|safe }},{% endif %}"scan", "segment", "integration", "dmind", "dtind", "png_url", "candmjd", "canddm", "canddt", "snrtot", "snr1", "clustersize"],
+                stored_fields: ["scanId", "prefsname",{% if session.logged_in %}{{ (session.userid + "_tags")|tojson|safe }},{% endif %}"scan", "segment", "integration", "dmind", "dtind", "png_url", "candmjd", "canddm", "canddt", "snrtot", "snr1", "snrk", "clustersize"],
                 render_results_metadata: pageSlider,
                 render_result_record: renderResult,
              // selected_filters_in_facet: true,
@@ -285,7 +288,7 @@
                     { "pre": "", "field": "pending", "post": " pending, " },
                     { "pre": "", "field": "finished", "post": " finished, " },
                     { "pre": "", "field": "errors", "post": " errors) submitted</li>" },
-		    { "pre": "<li>More info: <ul><li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22", "field": "scanId", "post": "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"},
+		    { "pre": "<li>More info: <ul><li><a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22", "field": "scanId", "post": "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D'>Search for candidates in scan</a></li>"},
                     { "pre": "<li class=\"clickable\" onclick=\"click_cands(event, this, '", "field": "scanId", "post": "')\">Show scan summary</li>"},
                     { "pre": "<li class=\"clickable\" onclick=\"click_preference(event, this, '", "field": "prefsname", "post": "')\">Show preferences</li>"},
                     { "pre": "<li class=\"clickable\" onclick=\"click_mock(event, this, '", "field": "scanId", "post": "')\">Show mock transient</li></ul></ul>"},
@@ -499,9 +502,9 @@
           <button onclick="search_help(event, this)">?</button>
 	  {% if session.logged_in %}
 	    <button onclick="group_tag(0, this)">Group tag</button>
-          <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22_exists_%5C%5C%3A{{ session.userid }}_tags%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show my tagged</button></a>
-          <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22NOT%20_exists_%5C%5C%3A{{ session.userid }}_tags%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show my untagged</button></a>
-          <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22tagcount%5C%5C%3A%200%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snrtot%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show untagged</button></a>
+          <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22_exists_%5C%5C%3A{{ session.userid }}_tags%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show my tagged</button></a>
+          <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22NOT%20_exists_%5C%5C%3A{{ session.userid }}_tags%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show my untagged</button></a>
+          <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22tagcount%5C%5C%3A%200%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show untagged</button></a>
           {% endif %}
 
 	  {% if session.logged_in %}
