@@ -215,7 +215,7 @@
     }
 
     jQuery(document).ready(function($) {
-        $('.facet-view-cands').each(function() {
+        $('.facet-view-cands').each(function(event) {
             $(this).facetview({
                 search_url : "http://search.realfast.io/api/cands/cand/_search",
                 datatype : "json",
@@ -246,7 +246,7 @@
                 exclude_predefined_filters_from_facets : false
             });
         });
-        $('.facet-view-scans').each(function() {
+        $('.facet-view-scans').each(function(event) {
             $(this).facetview({
                 search_url : "http://search.realfast.io/api/scans/scan/_search",
                 datatype : "json",
@@ -308,7 +308,7 @@
   </script>
 
   <script>
-    $(function() {
+    $(function(event) {
         $("#tabs").tabs();
         $("#tabs").tabs("select", {{curr_tab}});
     });
