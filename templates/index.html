@@ -490,47 +490,49 @@
       <a href="{{ url_for('logout') }}" class="btn">Log out</a>
     {% endif %}
     <div id="tabs">
-        <ul>
-          <li><a href="#tabs-1">Candidates</a></li>
-          {% if session.logged_in %}
-            <li><a href="#tabs-2">Scans Searched</a></li>
-            <li><a href="/get-curr-log">Tagging Log</a></li>
-            <li><a href="/show-tagging-examples">Tagging Examples</a></li>
-            <li><a href="/show-refined-candidates">Refined Candidates</a></li>
-	    <span style="float: right">{{session.userid}} logged in</span>
-          {% endif %}
-        </ul>
-        <div id="tabs-1">
-          <button onclick="search_help(event, this)">?</button>
-	  {% if session.logged_in %}
-	    <button onclick="group_tag(0, this)">Group tag</button>
-          <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22_exists_%5C%5C%3A{{ session.userid }}_tags%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show my tagged</button></a>
-          <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22NOT%20_exists_%5C%5C%3A{{ session.userid }}_tags%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show my untagged</button></a>
-          <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22tagcount%5C%5C%3A%200%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show untagged</button></a>
-	  <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22snrtot%5C%5C%3A%5C%5C%3E8%20AND%20frbprob%5C%5C%3A%5C%5C%3E0.3%20AND%20canddm%5C%5C%3A%5C%5C%3E100%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22asc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show high quality events</button></a>
-          {% endif %}
-
-	  {% if session.logged_in %}
-          <span style="float: right"> Index selection:
-            <select id="prefix-selection" onchange="change_prefix()">
-              {% for prefix in index_prefixes %}
-		{% if session.prefix == prefix %}
-                  <option selected="selected">{{prefix}}</option>
-		{% else %}
-                  <option>{{prefix}}</option>
-		{% endif %}
-	      {% endfor %}
-            </select>
-          </span>
-	  {% endif %}
-	  <div class="facet-view-cands"></div>
-        </div>
+      <ul>
+        <li><a href="#tabs-1">Candidates</a></li>
+        <li><a href="#tabs-2">Scans Searched</a></li>
+        {% if session.logged_in %}
+          <li><a href="/get-curr-log">Tagging Log</a></li>
+          <li><a href="/show-tagging-examples">Tagging Examples</a></li>
+          <li><a href="/show-refined-candidates">Refined Candidates</a></li>
+          <span style="float: right">{{session.userid}} logged in</span>
+        {% endif %}
+      </ul>
+      <div id="tabs-1">
+        <button onclick="search_help(event, this)">?</button>
 	{% if session.logged_in %}
-          <div id="tabs-2">
-          <button onclick="search_help(event, this)">?</button>
-  	  <div class="facet-view-scans"></div>
-          </div>
+	  <button onclick="group_tag(0, this)">Group tag</button>
+        <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22_exists_%5C%5C%3A{{ session.userid }}_tags%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show my tagged</button></a>
+        <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22NOT%20_exists_%5C%5C%3A{{ session.userid }}_tags%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show my untagged</button></a>
+        <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22tagcount%5C%5C%3A%200%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show untagged</button></a>
+	<a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22snrtot%5C%5C%3A%5C%5C%3E8%20AND%20frbprob%5C%5C%3A%5C%5C%3E0.3%20AND%20canddm%5C%5C%3A%5C%5C%3E100%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D"><button type="button">Show high quality events</button></a>
+        {% endif %}
+
+        <span style="float: right"> Index selection:
+	{% if session.logged_in %}
+          <select id="prefix-selection" onchange="change_prefix()">
+          {% for prefix in index_prefixes %}
+	    {% if session.prefix == prefix %}
+              <option selected="selected">{{prefix}}</option>
+	    {% else %}
+              <option>{{prefix}}</option>
+	    {% endif %}
+	  {% endfor %}
+          </select>
+	{% else %}
+          <select id="prefix-selection" onchange="change_prefix()">
+          <option selected="selected">final</option>
+          </select>
 	{% endif %}
+        </span>
+	<div class="facet-view-cands"></div>
+      </div>
+      <div id="tabs-2">
+        <button onclick="search_help(event, this)">?</button>
+        <div class="facet-view-scans"></div>
+      </div>
     </div>
     <div id="scan-info" title="Scan info"></div>
     <div id="query-cand" title="Query cand"></div>

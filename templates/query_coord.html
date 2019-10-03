@@ -2,4 +2,9 @@
   <li>SDM for candidate: {{sdmname}}</li>
   <li>FRB probability: {{frbprob}}</li>
   <li>RA, Dec: {{ra}}, {{dec}}</li>
+  <ul>
+  {% for association in associations %}
+    <li>{{association}}</li>
+  {% endfor %}
+  </ul>
 </ul>

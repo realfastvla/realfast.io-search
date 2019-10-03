@@ -4,6 +4,7 @@ import requests
 import urllib
 import json
 from elasticsearch import Elasticsearch, TransportError
+import subprocess
 import pdb
 from datetime import datetime, timedelta
 from functools import update_wrapper
@@ -44,8 +45,12 @@ def clear_prefix():
 
 @app.route("/set-prefix/<pre>")
 def set_prefix(pre):
-    session["prefix"] = str(pre)
-    return "set prefix to {0}".format(pre)
+    if session.get("logged_in"):
+        session["prefix"] = str(pre)
+        return "set prefix to {0}".format(pre)
+    else:
+        session["prefix"] = 'final'
+        return "must be logged in to set prefix"
 
 @app.route("/get-prefix")
 def get_prefix():
@@ -165,18 +170,23 @@ def get_api(query):
             prefix = session["prefix"]
         else:
             prefix = "new"
-        query = request.full_path.split("/")[2:]
-        query[0] = prefix + query[0]
-        query[1] = prefix + query[1]
-        query = "/".join(query)
-        query = query.replace('?', '?source_content_type=application/json&')  # for elasticsearch 6 compatibility
-        print('query:', query)
-        # get rid of backslashes in URL (but not before "), it seems facetview doesn't account for this
-        query = query.replace("%5C%5C", "")
-        resp = requests.get("http://realfast.nrao.edu:9200/" + query)
-        resp = make_response(resp.text)
-        resp.set_cookie("last_request", str(session["last_request"]))
-        return resp
+    else:
+        prefix = "final"
+    query = request.full_path.split("/")[2:]
+    query[0] = prefix + query[0]
+    query[1] = prefix + query[1]
+    query = "/".join(query)
+    query = query.replace('?', '?source_content_type=application/json&')  # for elasticsearch 6 compatibility
+    print('query:', query)
+    # get rid of backslashes in URL (but not before "), it seems facetview doesn't account for this
+    query = query.replace("%5C%5C", "")
+    resp = requests.get("http://realfast.nrao.edu:9200/" + query)
+    resp = make_response(resp.text)
+    resp.set_cookie("last_request", str(session["last_request"]))
+    return resp
+
+    """
+    # old code. not working.
     else:
         query_obj = json.loads(urllib.parse.unquote(request.args.get("source")))
         old_query = query_obj["query"]
@@ -199,7 +209,7 @@ def get_api(query):
         print("resp.text", resp.text)
         print("*"*100)
         return resp.text
-
+    """
 
 @app.route("/api/add_tag/<id>", methods=["GET"])
 def add_candidate_tag(id):
@@ -306,12 +316,15 @@ def get_coord_info(id):
             ra = doc["ra"]
             dec = doc["dec"]
             frbprob = "{0:.3f}".format(doc["frbprob"]) if "frbprob" in doc else "None"
-#            from rf_meta_query import frb_cand, radio
-#            frbc = frb_cand.build_frb_cand(ra, dec, 11111)
-#            first_cat, first_summary = radio.query_first(frbc)
+
+            lines = subprocess.check_output("rf_meta_q_me {0},{1}".format(ra, dec).split()).decode().split('\n')
+            associations = []
+            for line in lines:
+                if any([tel in line for tel in ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']]) and 'no cataloged' not in line:
+                    associations.append(line)
+
             sdmname = doc["sdmname"] if "sdmname" in doc.keys() else "No SDM available"
-#            return render_template("query_coord.html", ra=ra, dec=dec, first=first_summary[0], sdmname=sdmname, frbprob=frbprob)
-            return render_template("query_coord.html", ra=ra, dec=dec, sdmname=sdmname, frbprob=frbprob)
+            return render_template("query_coord.html", ra=ra, dec=dec, sdmname=sdmname, frbprob=frbprob, associations=associations)
         else:
             return "No candId {1} found".format(scanId, id)            
     except TransportError:
