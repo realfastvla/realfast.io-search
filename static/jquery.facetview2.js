@@ -248,7 +248,7 @@ function getUrlVars() {
             "script_fields" : false,
             
             // number of results to display per page (i.e. to retrieve per query)
-            "page_size" : 10,
+            "page_size" : 5,
             
             // cursor position in the elasticsearch result set
             "from" : 0,

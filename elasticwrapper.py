@@ -282,7 +282,7 @@ def get_scan_info(id):
         if resp['found']:
             doc = resp["_source"]
             scanId = doc["scanId"]
-            scanIdLink = "http://search.realfast.io/?source_content_type=application/json&source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22idgoeshere%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A10%7D".replace("idgoeshere", scanId)
+            scanIdLink = "http://search.realfast.io/?source_content_type=application/json&source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22idgoeshere%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A5%7D".replace("idgoeshere", scanId)
             scanNo = doc["scanNo"]
             subscanNo = doc["subscanNo"]
             startTime = doc["startTime"]
