@@ -2,9 +2,5 @@
   <li>SDM for candidate: {{sdmname}}</li>
   <li>FRB probability: {{frbprob}}</li>
   <li>RA, Dec: {{ra}}, {{dec}}</li>
-  <ul>
-  {% for association in associations %}
-    <li>{{association}}</li>
-  {% endfor %}
-  </ul>
+  <li class="clickable" onclick="click_associations(event, this, '{{ra}}', '{{dec}}')">Search for associations</li>
 </ul>

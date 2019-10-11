@@ -302,6 +302,19 @@ def get_scan_info(id):
         return "No scan found for id {0}".format(id)
 
 
+@app.route("/api/associations/<radec>")
+def get_associations(radec):
+    print('radec', radec)
+    ra, dec = radec.split(',')
+    lines = subprocess.check_output("rf_meta_q_me {0},{1}".format(ra, dec).split()).decode().split('\n')
+    associations = []
+    for line in lines:
+        if any([tel in line for tel in ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']]) and 'no cataloged' not in line:
+            associations.append(line)
+
+    return render_template("associations.html", ra=ra, dec=dec, associations=associations)
+
+
 @app.route("/api/query-cand/<id>")
 def get_coord_info(id):
     if "prefix" in session.keys():
@@ -317,14 +330,8 @@ def get_coord_info(id):
             dec = doc["dec"]
             frbprob = "{0:.3f}".format(doc["frbprob"]) if "frbprob" in doc else "None"
 
-            lines = subprocess.check_output("rf_meta_q_me {0},{1}".format(ra, dec).split()).decode().split('\n')
-            associations = []
-            for line in lines:
-                if any([tel in line for tel in ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']]) and 'no cataloged' not in line:
-                    associations.append(line)
-
             sdmname = doc["sdmname"] if "sdmname" in doc.keys() else "No SDM available"
-            return render_template("query_coord.html", ra=ra, dec=dec, sdmname=sdmname, frbprob=frbprob, associations=associations)
+            return render_template("query_coord.html", ra=ra, dec=dec, sdmname=sdmname, frbprob=frbprob)
         else:
             return "No candId {1} found".format(scanId, id)            
     except TransportError:

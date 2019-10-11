@@ -114,6 +114,23 @@
 	$(context).css("color", "red");
     }
 
+    function click_associations(event, context, ra, dec) {
+        // activate the associations popup
+        request_url = "/api/associations/" + ra.toString() + "," + dec.toString();
+	console.log(request_url);
+	$.get(request_url, function(resp) {
+                // resp contains the html to display
+                $("#associations-info").html(resp).dialog({
+                    width: 'auto',
+                    modal: true,
+                    beforeClose: function() {
+                        $(context).css("color", "black");
+                    }
+                });
+        });
+	$(context).css("color", "red");
+    }
+
     function search_help(event, context) {
         // activate the search help
         url = "https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html#_boolean_operators";
@@ -539,6 +556,7 @@
     <div id="cands-info" title="Cands info"><iframe src="" height="0" width="0"></iframe></div>
     <div id="preference-info" title="Preference info"></div>
     <div id="mock-info" title="Mock info"></div>
+    <div id="associations-info" title="Associations"></div>
     <div id="help-info" title="Help"></div>
     <div id="group-tag-dialog" title="Group tag">
 	<h3>Set all current candidates with what tags?</h3>
