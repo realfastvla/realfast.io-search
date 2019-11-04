@@ -3,4 +3,9 @@
   <li>FRB probability: {{frbprob}}</li>
   <li>RA, Dec: {{ra}}, {{dec}}</li>
   <li class="clickable" onclick="click_associations(event, this, '{{ra}}', '{{dec}}')">Search for associations</li>
+  {% if sdmname in refined_url %}
+    <img src={{refined_url}} \>
+  {% else %}
+    <li>{{refined_url}}</li>
+  {% endif %}
 </ul>

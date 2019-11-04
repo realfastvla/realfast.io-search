@@ -182,7 +182,7 @@
 	htmlString += "More info:"
         htmlString += "<ul class=\"columns\"><li class=\"clickable\" onclick=\"click_cands(event, this, '" + record.scanId + "')\">Show scan summary</li>"
         htmlString += "<li class=\"clickable\" onclick=\"click_scan(event, this, '" + record.scanId + "')\">Show metadata, prefs, mocks</li>"
-        htmlString += "<li class=\"clickable\" onclick=\"query_cand(event, this, '" + candId + "')\">Query candidate</li>"
+        htmlString += "<li class=\"clickable\" onclick=\"query_cand(event, this, '" + candId + "')\">Show candidate details</li>"
         htmlString += "<li>Search within: <a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22ra%5C%5C%3A%5C%5C%3E" + ra0 + "%20AND%20ra%5C%5C%3A%5C%5C%3C" + ra1 + "%20AND%20dec%5C%5C%3A%5C%5C%3E" + dec0 + "%20AND%20dec%5C%5C%3A%5C%5C%3C" + dec1 + "%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A5%7D'>10\" radius</a>, "
         htmlString += "<a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22datasetId%5C%5C%3A%5C%22" + record.datasetId.toString() + "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A5%7D'>dataset</a>, "
 	htmlString += "<a href='http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22scanId%5C%5C%3A%5C%22" + record.scanId.toString() + "%5C%22%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A5%7D'>scan</a>, "
@@ -513,7 +513,6 @@
         {% if session.logged_in %}
           <li><a href="/get-curr-log">Tagging Log</a></li>
           <li><a href="/show-tagging-examples">Tagging Examples</a></li>
-          <li><a href="/show-refined-candidates">Refined Candidates</a></li>
           <span style="float: right">{{session.userid}} logged in</span>
         {% endif %}
       </ul>
@@ -521,10 +520,10 @@
         <button onclick="search_help(event, this)">?</button>
 	{% if session.logged_in %}
 	  <button onclick="group_tag(0, this)">Group tag</button>
-        <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22_exists_%5C%5C%3A{{ session.userid }}_tags%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A5%7D"><button type="button">Show my tagged</button></a>
         <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22NOT%20_exists_%5C%5C%3A{{ session.userid }}_tags%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A5%7D"><button type="button">Show my untagged</button></a>
         <a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22tagcount%5C%5C%3A%200%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A5%7D"><button type="button">Show untagged</button></a>
-	<a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22snrtot%5C%5C%3A%5C%5C%3E8%20AND%20frbprob%5C%5C%3A%5C%5C%3E0.3%20AND%20canddm%5C%5C%3A%5C%5C%3E100%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A5%7D"><button type="button">Show high quality events</button></a>
+	<a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22snrtot%5C%5C%3A%5C%5C%3E8%20AND%20frbprob%5C%5C%3A%5C%5C%3E0.1%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A5%7D"><button type="button">Show high quality events</button></a>
+	<a href="http://search.realfast.io/?source=%7B%22query%22%3A%7B%22query_string%22%3A%7B%22query%22%3A%22refined_url%5C%5C%3A*%22%2C%22default_operator%22%3A%22OR%22%7D%7D%2C%22sort%22%3A%5B%7B%22snr1%22%3A%7B%22order%22%3A%22desc%22%7D%7D%5D%2C%22from%22%3A0%2C%22size%22%3A5%7D"><button type="button">Show refined candidates</button></a>
         {% endif %}
 
         <span style="float: right"> Index selection:

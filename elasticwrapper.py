@@ -84,16 +84,6 @@ def show_tagging_examples():
         return "Not allowed!"
 
 
-@app.route("/show-refined-candidates")
-def show_refined_candidates():
-    if session["logged_in"]:
-        html = '<body>List of <a href="http://realfast.nrao.edu/plots/refinement">refined candidates</a>.'
-        html += "</body>"
-        return html
-    else:
-        return "Not allowed!"
-
-
 @app.route("/checkpoint-log")
 def checkpoint_log():
     if session["logged_in"]:
@@ -331,7 +321,8 @@ def get_coord_info(id):
             frbprob = "{0:.3f}".format(doc["frbprob"]) if "frbprob" in doc else "None"
 
             sdmname = doc["sdmname"] if "sdmname" in doc.keys() else "No SDM available"
-            return render_template("query_coord.html", ra=ra, dec=dec, sdmname=sdmname, frbprob=frbprob)
+            refined_url = doc["refined_url"] if "refined_url" in doc.keys() else "No refinement plot available"
+            return render_template("query_coord.html", ra=ra, dec=dec, sdmname=sdmname, frbprob=frbprob, refined_url=refined_url)
         else:
             return "No candId {1} found".format(scanId, id)            
     except TransportError:
