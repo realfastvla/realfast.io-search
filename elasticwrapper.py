@@ -18,7 +18,7 @@ CORS(app)
 app.secret_key = b'r8\x9f\xbda\xc8q]]\x9e\xbc\x82y\x08h\x95\x8b\xc9\xcb\xa8\xd8\x90\x93\x18'
 es = Elasticsearch("http://realfast.nrao.edu:9200", timeout=20, retry_on_timeout=True)
 log_lock = Lock()
-index_prefixes = ["new", "final", "test", "chime", "aws"]
+index_prefixes = ["new", "final", "test", "chime", "aws", "internal"]
 nature_tags = ["rfi", "instrumental", "unsure/noise", "astrophysical", "mock"]
 action_tags = ["delete", "archive", "notify"]
 allowed_tags = nature_tags + action_tags
