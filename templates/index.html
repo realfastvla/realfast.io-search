@@ -161,9 +161,9 @@
         candId = record.scanId.toString() + "_seg" + record.segment.toString() + "-i" + record.integration.toString() + "-dm" + record.dmind.toString() + "-dt" + record.dtind.toString()
         htmlString += candId
         htmlString += "<ul class=\"columns\"><li>candmjd: "
-        htmlString += record.candmjd.toFixed(5).toString() + "</li>"
+        htmlString += record.candmjd.toFixed(7).toString() + "</li>"
         htmlString += "<li>(canddm, canddt): "
-        htmlString += record.canddm.toFixed(1).toString() + ", " + record.canddt.toString() + "</li>"
+        htmlString += record.canddm.toFixed(1).toString() + ", " + record.canddt.toFixed(3).toString() + "</li>"
         htmlString += "<li>SNR (im, k, tot): "
         htmlString += record.snr1.toFixed(1).toString() + ", "
         htmlString += record.snrk.toFixed(1).toString() + ", "

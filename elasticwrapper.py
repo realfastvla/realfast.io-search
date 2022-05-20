@@ -13,6 +13,9 @@ from threading import Lock
 import os
 from math import degrees
 
+OAUTH_SEARCH_ID="8173db015b7e84e42753"
+OAUTH_SEARCH_SECRET="980a0352022e22fb724678e702f763d4382c6ac0"
+
 app = Flask(__name__)
 CORS(app)
 app.secret_key = b'r8\x9f\xbda\xc8q]]\x9e\xbc\x82y\x08h\x95\x8b\xc9\xcb\xa8\xd8\x90\x93\x18'
@@ -114,12 +117,14 @@ def filter_by_tag():
 
 @app.route("/login")
 def login():
-    return redirect("https://github.com/login/oauth/authorize?client_id=8173db015b7e84e42753", code=302)
+    return redirect(f"https://github.com/login/oauth/authorize?client_id={OAUTH_SEARCH_ID}", code=302)
+#    return redirect(f"https://github.com/login/oauth/authorize?client_id={os.getenv('OAUTH_SEARCH_ID')}", code=302)
 
 @app.route("/callback")
 def callback():
         code = request.args.get("code")
-        resp = requests.post("https://github.com/login/oauth/access_token", headers={"Accept": "application/json"}, data={"client_id": "8173db015b7e84e42753", "client_secret": "b725cf9fb677aa0b743ea68b524e6f10ff93e7b8", "code": code})
+#        resp = requests.post("https://github.com/login/oauth/access_token", headers={"Accept": "application/json"}, data={"client_id": os.getenv("OAUTH_SEARCH_ID"), "client_secret": os.getenv("OAUTH_SEARCH_SECRET"), "code": code})
+        resp = requests.post("https://github.com/login/oauth/access_token", headers={"Accept": "application/json"}, data={"client_id": OAUTH_SEARCH_ID, "client_secret": OAUTH_SEARCH_SECRET, "code": code})
         data = resp.json()
         access_token = data["access_token"]
         resp = requests.get("https://api.github.com/user", headers={"Authorization": "token " + access_token, "Accept": "application/json"})
@@ -321,7 +326,10 @@ def get_coord_info(id):
             frbprob = "{0:.3f}".format(doc["frbprob"]) if "frbprob" in doc else "None"
 
             sdmname = doc["sdmname"] if "sdmname" in doc.keys() else "No SDM available"
-            refined_url = doc["refined_url"] if "refined_url" in doc.keys() else "No refinement plot available"
+            if "refined_url" in doc.keys():
+                refined_url = doc["refined_url"]
+            else:
+                refined_url = "Not refined"
             return render_template("query_coord.html", ra=ra, dec=dec, sdmname=sdmname, frbprob=frbprob, refined_url=refined_url)
         else:
             return "No candId {1} found".format(scanId, id)            
